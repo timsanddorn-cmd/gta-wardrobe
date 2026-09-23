@@ -25,6 +25,22 @@ service cloud.firestore {
         && part.texture >= 0;
     }
 
+    function validOutfitFields(outfit) {
+      return outfit.schemaVersion == 1
+        && outfit.name is string
+        && outfit.name.size() > 0
+        && outfit.name.size() <= 60
+        && outfit.gender in ['female', 'male']
+        && outfit.savedAt is string
+        && outfit.torsoIndex is int
+        && outfit.torsoIndex >= 0
+        && outfit.pantsIndex is int
+        && outfit.pantsIndex >= 0
+        && validGarment(outfit.torso)
+        && validGarment(outfit.pants)
+        && outfit.archived is bool;
+    }
+
     function validOutfit(outfit) {
       return outfit is map
         && outfit.keys().hasAll([
@@ -49,19 +65,7 @@ service cloud.firestore {
           'pants',
           'archived'
         ])
-        && outfit.schemaVersion == 1
-        && outfit.name is string
-        && outfit.name.size() > 0
-        && outfit.name.size() <= 60
-        && outfit.gender in ['female', 'male']
-        && outfit.savedAt is string
-        && outfit.torsoIndex is int
-        && outfit.torsoIndex >= 0
-        && outfit.pantsIndex is int
-        && outfit.pantsIndex >= 0
-        && validGarment(outfit.torso)
-        && validGarment(outfit.pants)
-        && outfit.archived is bool;
+        && validOutfitFields(outfit);
     }
 
     function validStoredOutfit(outfit) {
@@ -92,17 +96,7 @@ service cloud.firestore {
           'createdAt',
           'updatedAt'
         ])
-        && validOutfit({
-          'schemaVersion': outfit.schemaVersion,
-          'name': outfit.name,
-          'gender': outfit.gender,
-          'savedAt': outfit.savedAt,
-          'torsoIndex': outfit.torsoIndex,
-          'pantsIndex': outfit.pantsIndex,
-          'torso': outfit.torso,
-          'pants': outfit.pants,
-          'archived': outfit.archived
-        })
+        && validOutfitFields(outfit)
         && outfit.createdAt is timestamp
         && outfit.updatedAt is timestamp;
     }
