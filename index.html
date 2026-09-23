@@ -2030,7 +2030,7 @@ window.WardrobeBridge = {
     document.querySelectorAll(".cloudModalWrap.open").forEach(function(wrap){ closeModal(wrap.id); });
     cloudSummary.textContent = "Anmeldung erforderlich.";
     cloudTabBody.innerHTML = '<div class="cloudEmpty">Bitte zuerst anmelden.</div>';
-    if (message) authMessage.textContent = message;
+    authMessage.textContent = message || "";
   }
 
   function unlockApp(profile) {
@@ -2720,13 +2720,22 @@ window.WardrobeBridge = {
     }
 
     const uid = user.uid;
+    currentProfile = null;
+    allowedUsers = [];
+    allOutfits = [];
+    incomingSuggestions = [];
+    sentSuggestions = [];
+    suggestionTarget = null;
+    window.wardrobeUser = null;
+    lockApp("Zugriff wird geprüft …");
+
     try {
       const profile = await approvedProfile(user);
       if (revision !== authRevision || !auth.currentUser || auth.currentUser.uid !== uid) return;
 
       if (!profile) {
-        lockApp("Dieses Konto ist nicht für den Wardrobe-Zugriff freigegeben.");
         await signOut(auth);
+        lockApp("Dieses Konto ist nicht für den Wardrobe-Zugriff freigegeben.");
         return;
       }
 
@@ -2739,8 +2748,8 @@ window.WardrobeBridge = {
       console.error("Freigabeprüfung fehlgeschlagen",error);
 
       if (error && error.code === "permission-denied") {
-        lockApp("Dieses Konto ist nicht für den Wardrobe-Zugriff freigegeben.");
         await signOut(auth);
+        lockApp("Dieses Konto ist nicht für den Wardrobe-Zugriff freigegeben.");
         return;
       }
 
