@@ -1,2 +1,18 @@
-# gta-wardrobe
-Übersicht verschiedener Kleidungen aus GTA
+# GTA Wardrobe
+
+Gemeinsame Wardrobe-App für Tim, Ray, Andy und Kata.
+
+## Aktueller Funktionsumfang
+- Firebase-Login ohne sichtbare E-Mail-Adressen
+- Firestore-Freigabeliste für genau die erlaubten Nutzer
+- Eigene Cloud-Looks speichern, umbenennen, archivieren und löschen
+- Looks der anderen ansehen und als Vorlage laden
+- Outfit-Vorschläge senden, annehmen, ablehnen und zurückziehen
+- Export, Import und geschützte vollständige Sicherung
+- Übernahme älterer lokaler Looks
+- Eigenes Passwort unter „Konto & Sicherheit“ ändern
+- Damen-/Herren-Bereiche vorbereitet
+
+Die GitHub-Pages-Version läuft über \`index.html\`. Für Firebase Hosting liegt dieselbe fertige App zusätzlich unter \`public/index.html\`.
+
+Firestore-Regeln liegen versioniert in \`firestore.rules\`.
