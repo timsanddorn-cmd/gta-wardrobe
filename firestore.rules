@@ -4,12 +4,107 @@ service cloud.firestore {
     function signedIn() {
       return request.auth != null;
     }
+
     function approved() {
       return signedIn()
         && exists(/databases/$(database)/documents/allowedUsers/$(request.auth.uid));
     }
+
     function approvedUid(uid) {
       return exists(/databases/$(database)/documents/allowedUsers/$(uid));
+    }
+
+    function validGarment(part) {
+      return part is map
+        && part.keys().hasAll(['id', 'description', 'texture'])
+        && part.keys().hasOnly(['id', 'description', 'texture'])
+        && (part.id is int || part.id is string)
+        && part.description is string
+        && part.description.size() <= 220
+        && part.texture is int
+        && part.texture >= 0;
+    }
+
+    function validOutfit(outfit) {
+      return outfit is map
+        && outfit.keys().hasAll([
+          'schemaVersion',
+          'name',
+          'gender',
+          'savedAt',
+          'torsoIndex',
+          'pantsIndex',
+          'torso',
+          'pants',
+          'archived'
+        ])
+        && outfit.keys().hasOnly([
+          'schemaVersion',
+          'name',
+          'gender',
+          'savedAt',
+          'torsoIndex',
+          'pantsIndex',
+          'torso',
+          'pants',
+          'archived'
+        ])
+        && outfit.schemaVersion == 1
+        && outfit.name is string
+        && outfit.name.size() > 0
+        && outfit.name.size() <= 60
+        && outfit.gender in ['female', 'male']
+        && outfit.savedAt is string
+        && outfit.torsoIndex is int
+        && outfit.torsoIndex >= 0
+        && outfit.pantsIndex is int
+        && outfit.pantsIndex >= 0
+        && validGarment(outfit.torso)
+        && validGarment(outfit.pants)
+        && outfit.archived is bool;
+    }
+
+    function validStoredOutfit(outfit) {
+      return outfit is map
+        && outfit.keys().hasAll([
+          'schemaVersion',
+          'name',
+          'gender',
+          'savedAt',
+          'torsoIndex',
+          'pantsIndex',
+          'torso',
+          'pants',
+          'archived',
+          'createdAt',
+          'updatedAt'
+        ])
+        && outfit.keys().hasOnly([
+          'schemaVersion',
+          'name',
+          'gender',
+          'savedAt',
+          'torsoIndex',
+          'pantsIndex',
+          'torso',
+          'pants',
+          'archived',
+          'createdAt',
+          'updatedAt'
+        ])
+        && validOutfit({
+          'schemaVersion': outfit.schemaVersion,
+          'name': outfit.name,
+          'gender': outfit.gender,
+          'savedAt': outfit.savedAt,
+          'torsoIndex': outfit.torsoIndex,
+          'pantsIndex': outfit.pantsIndex,
+          'torso': outfit.torso,
+          'pants': outfit.pants,
+          'archived': outfit.archived
+        })
+        && outfit.createdAt is timestamp
+        && outfit.updatedAt is timestamp;
     }
 
     match /allowedUsers/{uid} {
@@ -19,7 +114,10 @@ service cloud.firestore {
 
     match /users/{uid}/outfits/{outfitId} {
       allow read: if approved();
-      allow create, update, delete: if approved() && request.auth.uid == uid;
+      allow create, update: if approved()
+        && request.auth.uid == uid
+        && validStoredOutfit(request.resource.data);
+      allow delete: if approved() && request.auth.uid == uid;
     }
 
     match /suggestions/{suggestionId} {
@@ -34,7 +132,7 @@ service cloud.firestore {
         && request.resource.data.message.size() <= 500
         && request.resource.data.status == 'pending'
         && request.resource.data.createdAt is timestamp
-        && request.resource.data.outfit is map;
+        && validOutfit(request.resource.data.outfit);
 
       allow read: if approved()
         && (resource.data.fromUid == request.auth.uid
