@@ -1150,7 +1150,7 @@ body.auth-locked main.app { display:none; }
       <details class="cloudAdvanced">
         <summary>🔒 Erweiterte Datensicherung öffnen</summary>
         <div class="cloudAdvancedBody">
-          <p>Diese Funktionen brauchst du im normalen Alltag nicht. Eine vollständige Sicherung enthält deine Cloud-Looks und die lokalen Wardrobe-Daten dieses Browsers.</p>
+          <p>Diese Funktionen brauchst du im normalen Alltag nicht. Eine vollständige Sicherung enthält deine Cloud-Looks und persönliche Wardrobe-Metadaten dieses Kontos.</p>
           <div class="cloudAdvancedGrid">
             <button class="cloudBtn" type="button" id="cloudFullBackupBtn">VOLLSTÄNDIGE SICHERUNG ERSTELLEN</button>
             <label class="cloudBtn danger" for="cloudRestoreFile">SICHERUNG WIEDERHERSTELLEN</label>
@@ -1824,11 +1824,12 @@ window.WardrobeBridge = {
     }
     return data;
   },
-  restoreLocalStorage: function(data) {
-    if (!data || typeof data !== "object") return;
+  restoreLocalStorage: function(data, allowedKeys) {
+    if (!data || typeof data !== "object" || !Array.isArray(allowedKeys)) return;
+    const allowed = new Set(allowedKeys.map(String));
     Object.entries(data).forEach(function(entry) {
       const key = entry[0], value = entry[1];
-      if (key.startsWith("gtaWardrobe")) localStorage.setItem(key, String(value));
+      if (key.startsWith("gtaWardrobe") && allowed.has(key)) localStorage.setItem(key, String(value));
     });
   }
 };
@@ -1914,6 +1915,22 @@ window.WardrobeBridge = {
   let incomingSuggestions = [];
   let sentSuggestions = [];
   let suggestionTarget = null;
+  let authRevision = 0;
+
+  const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
+  const MAX_BACKUP_BYTES = 6 * 1024 * 1024;
+  const MAX_ATOMIC_RESTORE_WRITES = 450;
+
+  function safeNonNegativeInt(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? Math.max(0, Math.trunc(number)) : 0;
+  }
+
+  function safeGarmentId(value) {
+    if (typeof value === "number" && Number.isFinite(value)) return Math.trunc(value);
+    const text = String(value == null ? "" : value).trim().slice(0,120);
+    return text || "0";
+  }
 
   function esc(value) {
     return String(value == null ? "" : value).replace(/[&<>"']/g, function(c) {
@@ -1933,27 +1950,48 @@ window.WardrobeBridge = {
   }
 
   function sanitizeOutfit(raw, forcedName) {
-    if (!raw || !raw.torso || !raw.pants) return null;
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+    if (!raw.torso || typeof raw.torso !== "object" || Array.isArray(raw.torso)) return null;
+    if (!raw.pants || typeof raw.pants !== "object" || Array.isArray(raw.pants)) return null;
+    if (raw.torso.id == null || raw.pants.id == null) return null;
+
     const name = String(forcedName || raw.name || "Unbenannter Look").trim().slice(0,60) || "Unbenannter Look";
+    const savedAt = typeof raw.savedAt === "string" && raw.savedAt.trim()
+      ? raw.savedAt.trim().slice(0,80)
+      : new Date().toISOString();
+
     return {
       schemaVersion: 1,
       name: name,
       gender: raw.gender === "male" ? "male" : "female",
-      savedAt: raw.savedAt || new Date().toISOString(),
-      torsoIndex: Math.max(0, Number(raw.torsoIndex) || 0),
-      pantsIndex: Math.max(0, Number(raw.pantsIndex) || 0),
+      savedAt: savedAt,
+      torsoIndex: safeNonNegativeInt(raw.torsoIndex),
+      pantsIndex: safeNonNegativeInt(raw.pantsIndex),
       torso: {
-        id: raw.torso.id,
+        id: safeGarmentId(raw.torso.id),
         description: String(raw.torso.description || "").slice(0,220),
-        texture: Math.max(0, Number(raw.torso.texture) || 0)
+        texture: safeNonNegativeInt(raw.torso.texture)
       },
       pants: {
-        id: raw.pants.id,
+        id: safeGarmentId(raw.pants.id),
         description: String(raw.pants.description || "").slice(0,220),
-        texture: Math.max(0, Number(raw.pants.texture) || 0)
+        texture: safeNonNegativeInt(raw.pants.texture)
       },
       archived: Boolean(raw.archived)
     };
+  }
+
+  function outfitFingerprint(raw) {
+    const outfit = sanitizeOutfit(raw, raw && raw.name);
+    if (!outfit) return "";
+    return JSON.stringify([
+      outfit.name,
+      outfit.gender,
+      String(outfit.torso.id),
+      outfit.torso.texture,
+      String(outfit.pants.id),
+      outfit.pants.texture
+    ]);
   }
 
   function ownerName(uid) {
@@ -1988,9 +2026,11 @@ window.WardrobeBridge = {
     userSession.classList.remove("active");
     sessionUserName.textContent = "";
     sessionUserRole.textContent = "";
+    suggestionTarget = null;
+    document.querySelectorAll(".cloudModalWrap.open").forEach(function(wrap){ closeModal(wrap.id); });
     cloudSummary.textContent = "Anmeldung erforderlich.";
     cloudTabBody.innerHTML = '<div class="cloudEmpty">Bitte zuerst anmelden.</div>';
-    if (message) authMessage.textContent = message;
+    authMessage.textContent = message || "";
   }
 
   function unlockApp(profile) {
@@ -2015,30 +2055,31 @@ window.WardrobeBridge = {
     };
   }
 
-  async function readAllowedUsers() {
+  async function fetchAllowedUsers() {
     const snap = await getDocs(collection(db, "allowedUsers"));
-    allowedUsers = snap.docs.map(function(d) {
+    return snap.docs.map(function(d) {
       const data = d.data() || {};
       return {uid:d.id,name:String(data.name || "Benutzer"),role:String(data.role || "user")};
     }).sort(function(a,b){ return a.name.localeCompare(b.name,"de"); });
   }
 
-  async function readAllOutfits() {
-    const groups = await Promise.all(allowedUsers.map(async function(user) {
+  async function fetchAllOutfits(users) {
+    const groups = await Promise.all(users.map(async function(user) {
       const snap = await getDocs(collection(db, "users", user.uid, "outfits"));
       return snap.docs.map(function(d) {
         return Object.assign({}, d.data(), {_docId:d.id,_ownerUid:user.uid,_ownerName:user.name});
       });
     }));
-    allOutfits = groups.flat();
+    return groups.flat();
   }
 
-  async function readSuggestions() {
-    const uid = currentProfile.uid;
+  async function fetchSuggestions(uid) {
     const incomingSnap = await getDocs(query(collection(db,"suggestions"), where("toUid","==",uid)));
     const sentSnap = await getDocs(query(collection(db,"suggestions"), where("fromUid","==",uid)));
-    incomingSuggestions = incomingSnap.docs.map(function(d){ return Object.assign({},d.data(),{_id:d.id}); });
-    sentSuggestions = sentSnap.docs.map(function(d){ return Object.assign({},d.data(),{_id:d.id}); });
+    return {
+      incoming: incomingSnap.docs.map(function(d){ return Object.assign({},d.data(),{_id:d.id}); }),
+      sent: sentSnap.docs.map(function(d){ return Object.assign({},d.data(),{_id:d.id}); })
+    };
   }
 
   function sortNewest(list) {
@@ -2149,33 +2190,68 @@ window.WardrobeBridge = {
   }
 
   function updateMigrationBox() {
-    const local = bridge && bridge.localOutfits ? bridge.localOutfits() : [];
+    const local = bridge && bridge.localOutfits
+      ? bridge.localOutfits().map(function(x){ return sanitizeOutfit(x,x && x.name); }).filter(Boolean)
+      : [];
     const key = currentProfile ? "gtaWardrobeCloudMigrated_" + currentProfile.uid : "";
-    const done = key && localStorage.getItem(key) === "1";
-    if (!local.length) {
+
+    if (!currentProfile || !local.length) {
       cloudMigration.innerHTML = "Auf diesem Gerät wurden keine älteren lokalen Looks gefunden.";
       return;
     }
+
+    const existing = new Set(
+      allOutfits
+        .filter(function(x){ return x._ownerUid === currentProfile.uid; })
+        .map(outfitFingerprint)
+        .filter(Boolean)
+    );
+    const pending = local.filter(function(outfit){ return !existing.has(outfitFingerprint(outfit)); });
+
+    if (!pending.length) {
+      if (key) localStorage.setItem(key,"1");
+      cloudMigration.innerHTML = "Die vorhandenen lokalen Looks sind bereits in deinem Cloud-Konto berücksichtigt. Die lokalen Kopien bleiben erhalten.";
+      return;
+    }
+
+    const done = key && localStorage.getItem(key) === "1";
     cloudMigration.innerHTML =
-      "<strong>" + local.length + " lokale Looks gefunden.</strong> " +
-      (done ? "Diese wurden bereits einmal in die Cloud übernommen. Die lokalen Kopien bleiben als zusätzliche Sicherung erhalten." :
-      "Du kannst sie einmalig in dein persönliches Cloud-Konto übernehmen. Die lokalen Kopien bleiben erhalten. " +
-      '<button class="cloudBtn" type="button" id="migrateLocalBtn">JETZT ÜBERNEHMEN</button>');
+      "<strong>" + pending.length + " noch nicht übernommene lokale Looks gefunden.</strong> " +
+      (done ? "Seit der letzten Übernahme sind weitere lokale Looks hinzugekommen. " :
+      "Du kannst sie in dein persönliches Cloud-Konto übernehmen. ") +
+      'Die lokalen Kopien bleiben erhalten. <button class="cloudBtn" type="button" id="migrateLocalBtn">JETZT ÜBERNEHMEN</button>';
     const btn = document.getElementById("migrateLocalBtn");
     if (btn) btn.addEventListener("click", migrateLocalLooks);
   }
 
-  async function refreshCloud(showMessage) {
+  async function refreshCloud(showMessage, revision) {
     if (!currentProfile) return;
+    const expectedRevision = revision == null ? authRevision : revision;
+    const uid = currentProfile.uid;
     if (showMessage) bridge.message("Cloud-Daten werden aktualisiert …");
+
     try {
-      await readAllowedUsers();
-      await Promise.all([readAllOutfits(), readSuggestions()]);
+      const users = await fetchAllowedUsers();
+      const results = await Promise.all([fetchAllOutfits(users), fetchSuggestions(uid)]);
+
+      if (
+        expectedRevision !== authRevision ||
+        !currentProfile ||
+        currentProfile.uid !== uid ||
+        !auth.currentUser ||
+        auth.currentUser.uid !== uid
+      ) return;
+
+      allowedUsers = users;
+      allOutfits = results[0];
+      incomingSuggestions = results[1].incoming;
+      sentSuggestions = results[1].sent;
       updateSummary();
       renderTabs();
       updateMigrationBox();
       if (showMessage) bridge.message("Cloud-Daten sind aktuell.");
     } catch (e) {
+      if (expectedRevision !== authRevision || !currentProfile || currentProfile.uid !== uid) return;
       console.error("Cloud refresh failed", e);
       cloudTabBody.innerHTML = '<div class="cloudEmpty">Cloud-Daten konnten nicht geladen werden. Prüfe die Firestore-Regeln und versuche es erneut.</div>';
       cloudSummary.textContent = "Cloud-Verbindung nicht verfügbar.";
@@ -2219,7 +2295,7 @@ window.WardrobeBridge = {
   }
 
   async function changeOwnOutfit(outfit, changes, message) {
-    if (!outfit || outfit._ownerUid !== currentProfile.uid) return;
+    if (!currentProfile || !outfit || outfit._ownerUid !== currentProfile.uid) return;
     await updateDoc(doc(db,"users",currentProfile.uid,"outfits",outfit._docId), Object.assign({},changes,{updatedAt:serverTimestamp()}));
     await refreshCloud(false);
     bridge.message(message);
@@ -2242,7 +2318,20 @@ window.WardrobeBridge = {
     const message = document.getElementById("suggestMessage").value.trim().slice(0,500);
     const statusBox = document.getElementById("suggestMessageStatus");
     const btn = document.getElementById("sendSuggestionBtn");
-    if (!suggestionTarget || !toUid || toUid === currentProfile.uid) return;
+    if (!currentProfile || !suggestionTarget || !toUid || toUid === currentProfile.uid) return;
+
+    const targetFingerprint = outfitFingerprint(suggestionTarget);
+    const duplicate = sentSuggestions.some(function(item) {
+      return item.status === "pending"
+        && item.toUid === toUid
+        && String(item.message || "").trim() === message
+        && outfitFingerprint(item.outfit) === targetFingerprint;
+    });
+    if (duplicate) {
+      statusBox.textContent = "Dieser identische Vorschlag ist für den Empfänger bereits offen.";
+      return;
+    }
+
     btn.disabled = true;
     statusBox.textContent = "Vorschlag wird gesendet …";
     try {
@@ -2306,22 +2395,51 @@ window.WardrobeBridge = {
   }
 
   async function migrateLocalLooks() {
-    const local = bridge.localOutfits().map(function(x){ return sanitizeOutfit(x,x.name); }).filter(Boolean);
+    if (!currentProfile) return;
+    const local = bridge.localOutfits().map(function(x){ return sanitizeOutfit(x,x && x.name); }).filter(Boolean);
     if (!local.length) return;
-    if (!confirm(local.length + " lokale Looks in dein Cloud-Konto übernehmen?")) return;
+
     try {
-      const batch = writeBatch(db);
-      local.forEach(function(outfit) {
-        const ref = doc(collection(db,"users",currentProfile.uid,"outfits"));
-        batch.set(ref,Object.assign({},outfit,{archived:false,createdAt:serverTimestamp(),updatedAt:serverTimestamp()}));
+      const snap = await getDocs(collection(db,"users",currentProfile.uid,"outfits"));
+      const existing = new Set(
+        snap.docs
+          .map(function(d){ return sanitizeOutfit(d.data(), d.data() && d.data().name); })
+          .filter(Boolean)
+          .map(outfitFingerprint)
+      );
+      const seen = new Set(existing);
+      const pending = local.filter(function(outfit) {
+        const key = outfitFingerprint(outfit);
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
       });
-      await batch.commit();
+
+      if (!pending.length) {
+        localStorage.setItem("gtaWardrobeCloudMigrated_" + currentProfile.uid,"1");
+        await refreshCloud(false);
+        bridge.message("Alle lokalen Looks sind bereits in deinem Cloud-Konto vorhanden.");
+        return;
+      }
+
+      if (!confirm(pending.length + " noch nicht übernommene lokale Looks in dein Cloud-Konto übernehmen?")) return;
+
+      for (let offset = 0; offset < pending.length; offset += 400) {
+        const batch = writeBatch(db);
+        pending.slice(offset,offset + 400).forEach(function(outfit) {
+          const ref = doc(collection(db,"users",currentProfile.uid,"outfits"));
+          batch.set(ref,Object.assign({},outfit,{archived:false,createdAt:serverTimestamp(),updatedAt:serverTimestamp()}));
+        });
+        await batch.commit();
+      }
+
       localStorage.setItem("gtaWardrobeCloudMigrated_" + currentProfile.uid,"1");
       await refreshCloud(false);
-      bridge.message(local.length + " lokale Looks wurden in die Cloud übernommen.");
+      bridge.message(pending.length + " lokale Looks wurden in die Cloud übernommen.");
     } catch (e) {
       console.error(e);
-      bridge.message("Lokale Looks konnten nicht übernommen werden.");
+      await refreshCloud(false);
+      bridge.message("Lokale Looks konnten nicht vollständig übernommen werden. Bereits übernommene Duplikate werden beim nächsten Versuch übersprungen.");
     }
   }
 
@@ -2352,6 +2470,7 @@ window.WardrobeBridge = {
 
   async function importLooksFile(file) {
     try {
+      if (!file || file.size > MAX_IMPORT_BYTES) throw new Error("Datei zu groß");
       const data = JSON.parse(await file.text());
       const source = Array.isArray(data) ? data : (Array.isArray(data.outfits) ? data.outfits : data.cloudOutfits);
       if (!Array.isArray(source)) throw new Error("Format");
@@ -2373,46 +2492,72 @@ window.WardrobeBridge = {
     }
   }
 
-  function fullBackup() {
-    const own = allOutfits.filter(function(x){ return x._ownerUid === currentProfile.uid; })
-      .map(function(x){ return sanitizeOutfit(x,x.name); }).filter(Boolean);
-    downloadJson("wardrobe-" + currentProfile.name.toLowerCase() + "-vollsicherung.json",{
-      format:"GTA_WARDROBE_ACCOUNT_BACKUP",
-      version:1,
-      createdAt:new Date().toISOString(),
-      ownerName:currentProfile.name,
-      cloudOutfits:own,
-      localStorage:bridge.localStorageDump()
-    });
-    bridge.message("Vollständige persönliche Sicherung erstellt.");
+  async function fullBackup() {
+    if (!currentProfile) return;
+    try {
+      const snap = await getDocs(collection(db,"users",currentProfile.uid,"outfits"));
+      const own = snap.docs
+        .map(function(d){ return sanitizeOutfit(d.data(), d.data() && d.data().name); })
+        .filter(Boolean);
+
+      const migrationKey = "gtaWardrobeCloudMigrated_" + currentProfile.uid;
+      const fullLocalDump = bridge.localStorageDump();
+      const personalLocalStorage = {};
+      if (Object.prototype.hasOwnProperty.call(fullLocalDump,migrationKey)) {
+        personalLocalStorage[migrationKey] = fullLocalDump[migrationKey];
+      }
+
+      downloadJson("wardrobe-" + currentProfile.name.toLowerCase() + "-vollsicherung.json",{
+        format:"GTA_WARDROBE_ACCOUNT_BACKUP",
+        version:2,
+        createdAt:new Date().toISOString(),
+        ownerName:currentProfile.name,
+        cloudOutfits:own,
+        localStorage:personalLocalStorage
+      });
+      bridge.message("Vollständige persönliche Sicherung erstellt.");
+    } catch (e) {
+      console.error(e);
+      bridge.message("Vollständige Sicherung konnte nicht erstellt werden.");
+    }
   }
 
   async function restoreBackup(file) {
     try {
+      if (!file || file.size > MAX_BACKUP_BYTES) throw new Error("Datei zu groß");
       const data = JSON.parse(await file.text());
       if (!data || data.format !== "GTA_WARDROBE_ACCOUNT_BACKUP" || !Array.isArray(data.cloudOutfits)) throw new Error("Format");
-      const typed = prompt("Diese Aktion ersetzt deine aktuellen Cloud-Looks durch die Sicherung.\\n\\nTippe WIEDERHERSTELLEN, um fortzufahren:");
+
+      const typed = prompt("Diese Aktion ersetzt deine aktuellen Cloud-Looks durch die Sicherung.\n\nTippe WIEDERHERSTELLEN, um fortzufahren:");
       if (typed !== "WIEDERHERSTELLEN") {
         bridge.message("Wiederherstellung abgebrochen.");
         return;
       }
+      if (!currentProfile) throw new Error("Keine Sitzung");
+
       const cleaned = data.cloudOutfits.map(function(x){ return sanitizeOutfit(x,x && x.name); }).filter(Boolean);
-      const current = allOutfits.filter(function(x){ return x._ownerUid === currentProfile.uid; });
-      if (current.length + cleaned.length > 400) throw new Error("Zu viele Operationen");
+      const currentSnap = await getDocs(collection(db,"users",currentProfile.uid,"outfits"));
+      if (currentSnap.size + cleaned.length > MAX_ATOMIC_RESTORE_WRITES) throw new Error("Zu viele Operationen");
+
       const batch = writeBatch(db);
-      current.forEach(function(x){ batch.delete(doc(db,"users",currentProfile.uid,"outfits",x._docId)); });
+      currentSnap.docs.forEach(function(d){ batch.delete(doc(db,"users",currentProfile.uid,"outfits",d.id)); });
       cleaned.forEach(function(outfit){
         const ref = doc(collection(db,"users",currentProfile.uid,"outfits"));
         batch.set(ref,Object.assign({},outfit,{createdAt:serverTimestamp(),updatedAt:serverTimestamp()}));
       });
       await batch.commit();
-      if (data.localStorage && typeof data.localStorage === "object") bridge.restoreLocalStorage(data.localStorage);
+
+      const migrationKey = "gtaWardrobeCloudMigrated_" + currentProfile.uid;
+      if (data.localStorage && typeof data.localStorage === "object") {
+        bridge.restoreLocalStorage(data.localStorage,[migrationKey]);
+      }
+
       currentTab = "mine";
       await refreshCloud(false);
       bridge.message("Persönliche Sicherung wurde wiederhergestellt.");
     } catch (e) {
       console.error(e);
-      bridge.message("Wiederherstellung fehlgeschlagen. Datei ungültig oder zu groß.");
+      bridge.message("Wiederherstellung fehlgeschlagen. Datei ungültig, zu groß oder enthält zu viele Looks.");
     }
   }
 
@@ -2454,6 +2599,10 @@ window.WardrobeBridge = {
           const name = prompt("Neuer Name für den Look:",outfit.name || "");
           if (name && name.trim()) await changeOwnOutfit(outfit,{name:name.trim().slice(0,60)},"Look wurde umbenannt.");
         } else if (action === "delete") {
+          if (!currentProfile || outfit._ownerUid !== currentProfile.uid) {
+            bridge.message("Fremde Looks können nicht gelöscht werden.");
+            return;
+          }
           if (confirm('Look "' + (outfit.name || "Unbenannt") + '" wirklich löschen?')) {
             await deleteDoc(doc(db,"users",currentProfile.uid,"outfits",outfit._docId));
             await refreshCloud(false);
@@ -2556,29 +2705,54 @@ window.WardrobeBridge = {
   });
 
   onAuthStateChanged(auth, async function(user) {
+    const revision = ++authRevision;
+
     if (!user) {
       currentProfile = null;
       allowedUsers = [];
       allOutfits = [];
       incomingSuggestions = [];
       sentSuggestions = [];
+      suggestionTarget = null;
       window.wardrobeUser = null;
       lockApp();
       return;
     }
+
+    const uid = user.uid;
+    currentProfile = null;
+    allowedUsers = [];
+    allOutfits = [];
+    incomingSuggestions = [];
+    sentSuggestions = [];
+    suggestionTarget = null;
+    window.wardrobeUser = null;
+    lockApp("Zugriff wird geprüft …");
+
     try {
       const profile = await approvedProfile(user);
+      if (revision !== authRevision || !auth.currentUser || auth.currentUser.uid !== uid) return;
+
       if (!profile) {
         await signOut(auth);
         lockApp("Dieses Konto ist nicht für den Wardrobe-Zugriff freigegeben.");
         return;
       }
+
       currentProfile = profile;
       window.wardrobeUser = profile;
       unlockApp(profile);
-      await refreshCloud(false);
+      await refreshCloud(false,revision);
     } catch (error) {
+      if (revision !== authRevision || !auth.currentUser || auth.currentUser.uid !== uid) return;
       console.error("Freigabeprüfung fehlgeschlagen",error);
+
+      if (error && error.code === "permission-denied") {
+        await signOut(auth);
+        lockApp("Dieses Konto ist nicht für den Wardrobe-Zugriff freigegeben.");
+        return;
+      }
+
       lockApp("Die Zugriffsprüfung ist fehlgeschlagen. Bitte später erneut versuchen.");
     }
   });
