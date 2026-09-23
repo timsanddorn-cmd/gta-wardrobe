@@ -784,9 +784,93 @@ body{
   max-width:330px;
   line-height:1.45;
 }
+
+
+/* --- Firebase Login / Zugriffsschutz --- */
+body.auth-locked { overflow:hidden; }
+body.auth-locked main.app { display:none; }
+.authGate{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:28px 18px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(171,146,99,.08), transparent 34%),
+    linear-gradient(180deg,#0a0b0c 0%,#111214 100%);
+}
+.authCard{
+  width:min(440px,100%);
+  border:1px solid var(--line);
+  background:#0d0e10;
+  box-shadow:0 24px 70px rgba(0,0,0,.42);
+}
+.authBrand{padding:26px 28px 20px;border-bottom:1px solid var(--line)}
+.authBrand .eyebrow{font-size:9px;letter-spacing:.23em;color:var(--accent);text-transform:uppercase;margin-bottom:8px}
+.authBrand h2{margin:0;font:30px/1 Georgia,"Times New Roman",serif;font-weight:400;color:var(--text)}
+.authBrand p{margin:10px 0 0;color:var(--muted);font-size:11px;line-height:1.6}
+.authForm{padding:24px 28px 28px}
+.authField{display:grid;gap:8px;margin-bottom:16px}
+.authField label{font-size:9px;letter-spacing:.16em;color:var(--soft);text-transform:uppercase}
+.authField select,.authField input{
+  width:100%;min-height:46px;border:1px solid #36383b;border-radius:0;background:#141517;color:var(--text);
+  padding:0 13px;font:inherit;outline:none;
+}
+.authField select:focus,.authField input:focus{border-color:var(--accent)}
+.authButton{
+  width:100%;min-height:46px;border:1px solid var(--accent2);border-radius:0;background:var(--accent2);color:#fff;
+  text-transform:uppercase;letter-spacing:.14em;font-size:10px;cursor:pointer;
+}
+.authButton:disabled{opacity:.55;cursor:wait}
+.authMessage{min-height:19px;margin-top:13px;color:#bd8b82;font-size:11px;line-height:1.5}
+.authSecurity{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);color:#777a7e;font-size:9px;line-height:1.65;letter-spacing:.04em}
+.userSession{
+  display:none;align-items:center;gap:10px;justify-content:flex-end;flex-wrap:wrap;
+}
+.userSession.active{display:flex}
+.userSession .userName{font:16px Georgia,"Times New Roman",serif;color:var(--text)}
+.userSession .userRole{font-size:8px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase}
+.userSession button{
+  border:1px solid #393a3c;background:transparent;color:var(--soft);min-height:34px;padding:0 12px;
+  text-transform:uppercase;letter-spacing:.12em;font-size:8px;cursor:pointer;
+}
+.userSession button:hover{background:#18191a}
+@media(max-width:640px){
+  .authCard{width:100%}.authBrand,.authForm{padding-left:20px;padding-right:20px}
+}
+
 </style>
 </head>
-<body>
+<body class="auth-locked">
+
+<div class="authGate" id="authGate" aria-live="polite">
+  <section class="authCard" aria-label="Wardrobe Anmeldung">
+    <div class="authBrand">
+      <div class="eyebrow">Geschützter Zugriff</div>
+      <h2>WARDROBE ARCHIVE</h2>
+      <p>Dieser Bereich ist ausschließlich für die freigegebenen Nutzer Tim, Ray, Andy und Kata bestimmt.</p>
+    </div>
+    <form class="authForm" id="loginForm" autocomplete="on">
+      <div class="authField">
+        <label for="loginUser">Benutzer</label>
+        <select id="loginUser" required>
+          <option value="tim">Tim</option>
+          <option value="ray">Ray</option>
+          <option value="andy">Andy</option>
+          <option value="kata">Kata</option>
+        </select>
+      </div>
+      <div class="authField">
+        <label for="loginPassword">Passwort</label>
+        <input id="loginPassword" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="authButton" id="loginButton" type="submit">ANMELDEN</button>
+      <div class="authMessage" id="authMessage"></div>
+      <div class="authSecurity">Keine öffentliche Registrierung. Der Zugriff wird nach der Anmeldung zusätzlich gegen die Firestore-Freigabeliste geprüft.</div>
+    </form>
+  </section>
+</div>
+
 <main class="app">
   <div class="header">
     <div>
@@ -794,6 +878,14 @@ body{
       <p>Persönliches Outfit-Archiv für GTA RP · Auswahl, Kombination und IC-Referenz.</p>
     </div>
     <div class="headerTools">
+
+      <div class="userSession" id="userSession">
+        <div>
+          <div class="userName" id="sessionUserName"></div>
+          <div class="userRole" id="sessionUserRole"></div>
+        </div>
+        <button type="button" id="logoutBtn">ABMELDEN</button>
+      </div>
       <div class="genderSwitch" aria-label="Geschlecht auswählen">
         <button type="button" class="genderBtn active" id="femaleBtn" data-gender="female">DAMEN</button>
         <button type="button" class="genderBtn" id="maleBtn" data-gender="male">HERREN</button>
@@ -1499,5 +1591,151 @@ window.addEventListener("beforeunload", () => {
 switchGender("female", false);
 renderSavedOutfits();
 </script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged,
+    setPersistence,
+    browserSessionPersistence
+  } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+  import {
+    getFirestore,
+    doc,
+    getDoc
+  } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAxZqZ5SqvdIukMi6-Y6FHXSyY_d-mx1Zg",
+    authDomain: "gta-wardrobe.firebaseapp.com",
+    projectId: "gta-wardrobe",
+    storageBucket: "gta-wardrobe.firebasestorage.app",
+    messagingSenderId: "1030755625903",
+    appId: "1:1030755625903:web:2fa213e5a2c1ad093e9d5a"
+  };
+
+  const LOGIN_EMAILS = Object.freeze({
+    tim: "tim@wardrobe.invalid",
+    ray: "ray@wardrobe.invalid",
+    andy: "andy@wardrobe.invalid",
+    kata: "kata@wardrobe.invalid"
+  });
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const gate = document.getElementById("authGate");
+  const form = document.getElementById("loginForm");
+  const userSelect = document.getElementById("loginUser");
+  const passwordInput = document.getElementById("loginPassword");
+  const loginButton = document.getElementById("loginButton");
+  const authMessage = document.getElementById("authMessage");
+  const userSession = document.getElementById("userSession");
+  const sessionUserName = document.getElementById("sessionUserName");
+  const sessionUserRole = document.getElementById("sessionUserRole");
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  let authCheckRunning = false;
+
+  function lockApp(message = "") {
+    document.body.classList.add("auth-locked");
+    gate.style.display = "flex";
+    userSession.classList.remove("active");
+    sessionUserName.textContent = "";
+    sessionUserRole.textContent = "";
+    if (message) authMessage.textContent = message;
+  }
+
+  function unlockApp(profile) {
+    document.body.classList.remove("auth-locked");
+    gate.style.display = "none";
+    authMessage.textContent = "";
+    passwordInput.value = "";
+    sessionUserName.textContent = profile?.name || "Benutzer";
+    sessionUserRole.textContent = profile?.role === "admin" ? "Administrator" : "Benutzer";
+    userSession.classList.add("active");
+  }
+
+  async function getApprovedProfile(user) {
+    if (!user) return null;
+    const ref = doc(db, "allowedUsers", user.uid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
+    const data = snap.data() || {};
+    return {
+      uid: user.uid,
+      name: typeof data.name === "string" ? data.name : "Benutzer",
+      role: typeof data.role === "string" ? data.role : "user"
+    };
+  }
+
+  async function verifyAndOpen(user) {
+    if (authCheckRunning) return;
+    authCheckRunning = true;
+    try {
+      const profile = await getApprovedProfile(user);
+      if (!profile) {
+        await signOut(auth);
+        lockApp("Dieses Konto ist nicht für den Wardrobe-Zugriff freigegeben.");
+        return;
+      }
+      window.wardrobeUser = profile;
+      unlockApp(profile);
+    } catch (error) {
+      console.error("Freigabeprüfung fehlgeschlagen", error);
+      lockApp("Die Zugriffsprüfung ist fehlgeschlagen. Bitte später erneut versuchen.");
+    } finally {
+      authCheckRunning = false;
+    }
+  }
+
+  await setPersistence(auth, browserSessionPersistence);
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    authMessage.textContent = "";
+    loginButton.disabled = true;
+    loginButton.textContent = "PRÜFE ZUGRIFF …";
+
+    const key = userSelect.value;
+    const email = LOGIN_EMAILS[key];
+    const password = passwordInput.value;
+
+    try {
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      await verifyAndOpen(credential.user);
+    } catch (error) {
+      console.error("Anmeldung fehlgeschlagen", error);
+      lockApp("Anmeldung nicht möglich. Benutzer oder Passwort ist nicht korrekt.");
+      passwordInput.select();
+    } finally {
+      loginButton.disabled = false;
+      loginButton.textContent = "ANMELDEN";
+    }
+  });
+
+  logoutBtn.addEventListener("click", async () => {
+    try {
+      await signOut(auth);
+    } finally {
+      window.wardrobeUser = null;
+      lockApp("Du wurdest abgemeldet.");
+    }
+  });
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.wardrobeUser = null;
+      lockApp();
+      return;
+    }
+    await verifyAndOpen(user);
+  });
+</script>
+
 </body>
 </html>
