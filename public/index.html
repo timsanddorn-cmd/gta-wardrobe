@@ -839,6 +839,104 @@ body.auth-locked main.app { display:none; }
   .authCard{width:100%}.authBrand,.authForm{padding-left:20px;padding-right:20px}
 }
 
+
+/* ===== Wardrobe Cloud UI ===== */
+.savedPanel,.backupCenter{display:none!important}
+.quickHelp{
+  margin:-4px 18px 20px;padding:0 2px;color:#77746f;font-size:10px;line-height:1.6
+}
+.cloudHub{
+  margin:0 18px 18px;border:1px solid var(--line);background:#0d0e10;overflow:hidden
+}
+.cloudHero{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;
+  padding:24px;border-bottom:1px solid var(--line);
+  background:linear-gradient(135deg,rgba(180,154,114,.08),transparent 52%)
+}
+.cloudEyebrow{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.cloudHero h3{margin:0;font:29px/1.08 Georgia,"Times New Roman",serif;font-weight:400;color:var(--text)}
+.cloudHero p{margin:9px 0 0;max-width:640px;color:var(--muted);font-size:11px;line-height:1.65}
+.cloudSummary{
+  min-width:210px;border-left:1px solid var(--line);padding-left:18px;color:var(--soft);
+  font-size:10px;line-height:1.8;letter-spacing:.04em
+}
+.cloudSave{
+  display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:10px;padding:16px 24px;
+  border-bottom:1px solid var(--line);background:#0b0c0d
+}
+.cloudSave input,.cloudModal input,.cloudModal textarea,.cloudModal select{
+  width:100%;min-height:44px;border:1px solid #36383b;border-radius:0;background:#141517;color:var(--text);
+  padding:0 12px;font:inherit;outline:none
+}
+.cloudModal textarea{min-height:100px;padding:12px;resize:vertical}
+.cloudSave input:focus,.cloudModal input:focus,.cloudModal textarea:focus,.cloudModal select:focus{border-color:var(--accent)}
+.cloudBtn{
+  min-height:42px;border:1px solid #393a3c;border-radius:0;background:transparent;color:var(--text);
+  padding:0 14px;cursor:pointer;font-size:9px;letter-spacing:.12em;text-transform:uppercase
+}
+.cloudBtn:hover{background:#18191a}
+.cloudBtn.primary{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.cloudBtn.danger{border-color:#5c2a33;color:#ffd9df;background:#241317}
+.cloudBtn:disabled{opacity:.5;cursor:not-allowed}
+.cloudTabs{
+  display:flex;gap:0;overflow:auto;border-bottom:1px solid var(--line);background:#0b0c0d
+}
+.cloudTab{
+  flex:0 0 auto;min-height:44px;border:0;border-right:1px solid var(--line);background:transparent;
+  color:#817d76;padding:0 16px;cursor:pointer;font-size:9px;letter-spacing:.12em;text-transform:uppercase
+}
+.cloudTab.active{background:#171819;color:var(--soft)}
+.cloudTabBody{padding:16px 24px 22px;display:grid;gap:12px}
+.cloudEmpty{
+  border:1px dashed #343537;padding:22px;color:#77746f;font-size:11px;line-height:1.6;text-align:center
+}
+.cloudCard{border:1px solid var(--line);background:#121315;padding:15px}
+.cloudCardTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.cloudCardOwner{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:5px}
+.cloudCardName{font:19px/1.2 Georgia,"Times New Roman",serif;color:var(--text)}
+.cloudCardMeta{margin-top:8px;color:var(--muted);font-size:10px;line-height:1.65}
+.cloudCardActions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.cloudCardActions .cloudBtn{min-height:34px;padding:0 10px;font-size:8px}
+.cloudStatus{display:inline-block;margin-top:9px;padding:5px 8px;border:1px solid #343537;color:#9d988f;font-size:8px;letter-spacing:.1em;text-transform:uppercase}
+.cloudTransfer{border-top:1px solid var(--line);padding:22px 24px;background:#0b0c0d}
+.cloudTransfer h4{margin:0;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.cloudTransfer p{margin:8px 0 15px;color:var(--muted);font-size:10px;line-height:1.65}
+.cloudTransferRow{display:flex;gap:8px;flex-wrap:wrap}
+.cloudTransfer input[type=file]{display:none}
+.cloudMigration{margin-top:14px;padding:12px;border:1px solid #2d2e30;background:#101112;color:#918d86;font-size:10px;line-height:1.6}
+.cloudAdvanced{border-top:1px solid var(--line);background:#090a0b}
+.cloudAdvanced summary{
+  list-style:none;cursor:pointer;padding:18px 24px;color:var(--soft);font-size:10px;letter-spacing:.16em;text-transform:uppercase
+}
+.cloudAdvanced summary::-webkit-details-marker{display:none}
+.cloudAdvancedBody{padding:0 24px 22px;border-top:1px solid #202123}
+.cloudAdvancedBody p{color:#7d7972;font-size:10px;line-height:1.65;margin:14px 0}
+.cloudAdvancedGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cloudNotice{margin-top:12px;color:#b39179;font-size:9px;line-height:1.6}
+#accountSecurityBtn{border-color:#4a443a;color:var(--soft)}
+.cloudModalWrap{
+  position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:18px;
+  background:rgba(0,0,0,.78);backdrop-filter:blur(5px)
+}
+.cloudModalWrap.open{display:flex}
+.cloudModal{width:min(520px,100%);max-height:90vh;overflow:auto;border:1px solid #343537;background:#0d0e10;box-shadow:0 30px 90px rgba(0,0,0,.55)}
+.cloudModalHead{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;padding:20px 22px;border-bottom:1px solid var(--line)}
+.cloudModalHead h3{margin:0;font:23px/1.1 Georgia,"Times New Roman",serif;font-weight:400}
+.cloudModalClose{border:0;background:transparent;color:#aaa59d;cursor:pointer;font-size:22px;line-height:1}
+.cloudModalBody{padding:20px 22px}
+.cloudField{display:grid;gap:7px;margin-bottom:14px}
+.cloudField label{font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:#9b968e}
+.cloudModalActions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:18px}
+.cloudMessage{min-height:18px;margin-top:12px;color:#c0a78f;font-size:10px;line-height:1.55}
+.cloudInfoLine{padding:10px 0 0;color:#7f7b74;font-size:9px;line-height:1.6}
+@media(max-width:650px){
+  .cloudHero,.cloudTransfer{padding-left:16px;padding-right:16px}
+  .cloudSave{grid-template-columns:1fr;padding:14px 16px}
+  .cloudTabBody{padding:14px 16px 18px}
+  .cloudSummary{width:100%;border-left:0;border-top:1px solid var(--line);padding:12px 0 0}
+  .cloudAdvancedGrid{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body class="auth-locked">
@@ -884,13 +982,14 @@ body.auth-locked main.app { display:none; }
           <div class="userName" id="sessionUserName"></div>
           <div class="userRole" id="sessionUserRole"></div>
         </div>
+        <button type="button" id="accountSecurityBtn">KONTO &amp; SICHERHEIT</button>
         <button type="button" id="logoutBtn">ABMELDEN</button>
       </div>
       <div class="genderSwitch" aria-label="Geschlecht auswählen">
         <button type="button" class="genderBtn active" id="femaleBtn" data-gender="female">DAMEN</button>
         <button type="button" class="genderBtn" id="maleBtn" data-gender="male">HERREN</button>
       </div>
-      <div class="badge" id="archiveBadge">DAMEN · LOCAL ARCHIVE</div>
+      <div class="badge" id="archiveBadge">DAMEN · WARDROBE</div>
       <div id="sourceDataStatus" class="badge">Datenstand Klamotten ST: 142 Torso-Einträge · 45 Hosen-Einträge</div>
     </div>
   </div>
@@ -942,10 +1041,11 @@ body.auth-locked main.app { display:none; }
     </div>
 
     <div class="actions">
-      <button class="primary" type="button" id="saveBtn">AUSWAHL MERKEN</button>
-      <button type="button" id="loadBtn">MERKUNG LADEN</button>
-      <button type="button" id="resetBtn">RESET</button>
+      <button class="primary" type="button" id="saveBtn">AKTUELLE AUSWAHL MERKEN</button>
+      <button type="button" id="loadBtn">LETZTE AUSWAHL LADEN</button>
+      <button type="button" id="resetBtn">AUSWAHL ZURÜCKSETZEN</button>
     </div>
+    <div class="quickHelp">Diese drei Tasten sind nur für eine schnelle Auswahl auf diesem Gerät. Dauerhafte Outfits speicherst du direkt darunter in deinem persönlichen Cloud-Bereich.</div>
 
 
     <section class="savedPanel">
@@ -1006,6 +1106,98 @@ body.auth-locked main.app { display:none; }
         Empfehlung: Nach größeren Änderungen oder vor einem Update einmal „Sicherung erstellen“ drücken und die Datei an einem sicheren Ort aufbewahren.
       </div>
     </section>
+
+
+    <section class="cloudHub" id="cloudHub">
+      <div class="cloudHero">
+        <div>
+          <div class="cloudEyebrow">Gemeinsame Wardrobe</div>
+          <h3>Deine Looks. Eure Ideen.</h3>
+          <p>Speichere deine Outfits online, sieh die Looks der anderen an und schickt euch gegenseitig Vorschläge. Fremde Looks bleiben immer schreibgeschützt.</p>
+        </div>
+        <div class="cloudSummary" id="cloudSummary">Cloud wird nach der Anmeldung geladen …</div>
+      </div>
+
+      <div class="cloudSave">
+        <input id="cloudOutfitName" type="text" maxlength="60" placeholder="Look benennen · z. B. Dienst / Event / Privat">
+        <button class="cloudBtn primary" type="button" id="cloudSaveBtn">LOOK SPEICHERN</button>
+      </div>
+
+      <div class="cloudTabs" role="tablist" aria-label="Outfit-Bereiche">
+        <button class="cloudTab active" type="button" data-cloud-tab="mine">MEINE LOOKS</button>
+        <button class="cloudTab" type="button" data-cloud-tab="others">LOOKS DER ANDEREN</button>
+        <button class="cloudTab" type="button" data-cloud-tab="incoming">FÜR MICH</button>
+        <button class="cloudTab" type="button" data-cloud-tab="sent">VON MIR</button>
+        <button class="cloudTab" type="button" data-cloud-tab="archive">ARCHIV</button>
+      </div>
+
+      <div class="cloudTabBody" id="cloudTabBody">
+        <div class="cloudEmpty">Nach der Anmeldung werden deine Cloud-Looks geladen.</div>
+      </div>
+
+      <section class="cloudTransfer">
+        <h4>Archiv &amp; Austausch</h4>
+        <p>Exportieren erstellt eine JSON-Datei mit deinen Cloud-Looks. Importieren fügt gesicherte Looks deinem eigenen Konto hinzu. Andere Benutzer werden dadurch nie verändert.</p>
+        <div class="cloudTransferRow">
+          <button class="cloudBtn" type="button" id="cloudRefreshBtn">AKTUALISIEREN</button>
+          <button class="cloudBtn" type="button" id="cloudExportBtn">MEINE LOOKS EXPORTIEREN</button>
+          <label class="cloudBtn" for="cloudImportFile">LOOKS IMPORTIEREN</label>
+          <input id="cloudImportFile" type="file" accept="application/json,.json">
+        </div>
+        <div class="cloudMigration" id="cloudMigration">Prüfe, ob auf diesem Gerät ältere lokale Looks vorhanden sind …</div>
+      </section>
+
+      <details class="cloudAdvanced">
+        <summary>🔒 Erweiterte Datensicherung öffnen</summary>
+        <div class="cloudAdvancedBody">
+          <p>Diese Funktionen brauchst du im normalen Alltag nicht. Eine vollständige Sicherung enthält deine Cloud-Looks und die lokalen Wardrobe-Daten dieses Browsers.</p>
+          <div class="cloudAdvancedGrid">
+            <button class="cloudBtn" type="button" id="cloudFullBackupBtn">VOLLSTÄNDIGE SICHERUNG ERSTELLEN</button>
+            <label class="cloudBtn danger" for="cloudRestoreFile">SICHERUNG WIEDERHERSTELLEN</label>
+            <input id="cloudRestoreFile" type="file" accept="application/json,.json" hidden>
+          </div>
+          <div class="cloudNotice">Eine Wiederherstellung startet niemals sofort: Nach Auswahl der Datei musst du zusätzlich das Wort WIEDERHERSTELLEN bestätigen.</div>
+        </div>
+      </details>
+    </section>
+
+    <div class="cloudModalWrap" id="suggestModal" aria-hidden="true">
+      <section class="cloudModal" role="dialog" aria-modal="true" aria-labelledby="suggestModalTitle">
+        <div class="cloudModalHead">
+          <div><div class="cloudEyebrow">Outfit-Vorschlag</div><h3 id="suggestModalTitle">Look vorschlagen</h3></div>
+          <button class="cloudModalClose" type="button" data-close-modal="suggestModal" aria-label="Schließen">×</button>
+        </div>
+        <div class="cloudModalBody">
+          <div class="cloudField"><label for="suggestRecipient">Empfänger</label><select id="suggestRecipient"></select></div>
+          <div class="cloudField"><label for="suggestMessage">Nachricht · optional</label><textarea id="suggestMessage" maxlength="500" placeholder="Zum Beispiel: Das würde dir richtig gut stehen."></textarea></div>
+          <div class="cloudInfoLine" id="suggestOutfitInfo"></div>
+          <div class="cloudMessage" id="suggestMessageStatus"></div>
+          <div class="cloudModalActions">
+            <button class="cloudBtn" type="button" data-close-modal="suggestModal">ABBRECHEN</button>
+            <button class="cloudBtn primary" type="button" id="sendSuggestionBtn">VORSCHLAG SENDEN</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="cloudModalWrap" id="accountModal" aria-hidden="true">
+      <section class="cloudModal" role="dialog" aria-modal="true" aria-labelledby="accountModalTitle">
+        <div class="cloudModalHead">
+          <div><div class="cloudEyebrow">Konto &amp; Sicherheit</div><h3 id="accountModalTitle">Passwort ändern</h3></div>
+          <button class="cloudModalClose" type="button" data-close-modal="accountModal" aria-label="Schließen">×</button>
+        </div>
+        <form class="cloudModalBody" id="passwordChangeForm">
+          <div class="cloudField"><label for="currentPassword">Aktuelles Passwort</label><input id="currentPassword" type="password" autocomplete="current-password" required></div>
+          <div class="cloudField"><label for="newPassword">Neues Passwort · mindestens 10 Zeichen</label><input id="newPassword" type="password" autocomplete="new-password" minlength="10" required></div>
+          <div class="cloudField"><label for="newPasswordRepeat">Neues Passwort wiederholen</label><input id="newPasswordRepeat" type="password" autocomplete="new-password" minlength="10" required></div>
+          <div class="cloudMessage" id="passwordChangeStatus"></div>
+          <div class="cloudModalActions">
+            <button class="cloudBtn" type="button" data-close-modal="accountModal">ABBRECHEN</button>
+            <button class="cloudBtn primary" type="submit" id="passwordChangeBtn">PASSWORT ÄNDERN</button>
+          </div>
+        </form>
+      </section>
+    </div>
 
     <div class="status" id="status">Bereit.</div>
   </section>
@@ -1122,7 +1314,7 @@ function switchGender(gender, announce = true) {
   document.getElementById("femaleBtn").classList.toggle("active", gender === "female");
   document.getElementById("maleBtn").classList.toggle("active", gender === "male");
   document.getElementById("archiveBadge").textContent =
-    (gender === "female" ? "DAMEN" : "HERREN") + " · LOCAL ARCHIVE";
+    (gender === "female" ? "DAMEN" : "HERREN") + " · WARDROBE";
 
   render();
 
@@ -1592,6 +1784,57 @@ switchGender("female", false);
 renderSavedOutfits();
 </script>
 
+
+<script>
+window.WardrobeBridge = {
+  snapshot: function(name) {
+    return currentOutfitSnapshot(name);
+  },
+  localOutfits: function() {
+    return readSavedOutfits();
+  },
+  load: function(outfit) {
+    if (!outfit || !outfit.torso || !outfit.pants) return false;
+    const targetGender = outfit.gender === "male" ? "male" : "female";
+    switchGender(targetGender, false);
+
+    let torsoIndex = catalog.torso.findIndex(function(x){ return String(x.id) === String(outfit.torso.id); });
+    let pantsIndex = catalog.pants.findIndex(function(x){ return String(x.id) === String(outfit.pants.id); });
+
+    if (torsoIndex < 0) torsoIndex = Math.min(Math.max(0, Number(outfit.torsoIndex) || 0), Math.max(0, catalog.torso.length - 1));
+    if (pantsIndex < 0) pantsIndex = Math.min(Math.max(0, Number(outfit.pantsIndex) || 0), Math.max(0, catalog.pants.length - 1));
+
+    state.torsoIndex = torsoIndex;
+    state.pantsIndex = pantsIndex;
+    state.torsoTexture = Math.max(0, Number(outfit.torso.texture) || 0);
+    state.pantsTexture = Math.max(0, Number(outfit.pants.texture) || 0);
+    render();
+    status.textContent = 'Look "' + (outfit.name || "Unbenannt") + '" als Vorlage geladen.';
+    window.scrollTo({top: document.querySelector(".catalog").offsetTop, behavior:"smooth"});
+    return true;
+  },
+  message: function(text) {
+    status.textContent = String(text || "");
+  },
+  localStorageDump: function() {
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("gtaWardrobe")) data[key] = localStorage.getItem(key);
+    }
+    return data;
+  },
+  restoreLocalStorage: function(data) {
+    if (!data || typeof data !== "object") return;
+    Object.entries(data).forEach(function(entry) {
+      const key = entry[0], value = entry[1];
+      if (key.startsWith("gtaWardrobe")) localStorage.setItem(key, String(value));
+    });
+  }
+};
+</script>
+
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
   import {
@@ -1600,12 +1843,24 @@ renderSavedOutfits();
     signOut,
     onAuthStateChanged,
     setPersistence,
-    browserSessionPersistence
+    browserSessionPersistence,
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    updatePassword
   } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
   import {
     getFirestore,
     doc,
-    getDoc
+    getDoc,
+    getDocs,
+    collection,
+    query,
+    where,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    serverTimestamp,
+    writeBatch
   } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -1627,6 +1882,7 @@ renderSavedOutfits();
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+  const bridge = window.WardrobeBridge;
 
   const gate = document.getElementById("authGate");
   const form = document.getElementById("loginForm");
@@ -1638,15 +1894,102 @@ renderSavedOutfits();
   const sessionUserName = document.getElementById("sessionUserName");
   const sessionUserRole = document.getElementById("sessionUserRole");
   const logoutBtn = document.getElementById("logoutBtn");
+  const accountSecurityBtn = document.getElementById("accountSecurityBtn");
 
-  let authCheckRunning = false;
+  const cloudSummary = document.getElementById("cloudSummary");
+  const cloudTabBody = document.getElementById("cloudTabBody");
+  const cloudSaveBtn = document.getElementById("cloudSaveBtn");
+  const cloudOutfitName = document.getElementById("cloudOutfitName");
+  const cloudRefreshBtn = document.getElementById("cloudRefreshBtn");
+  const cloudExportBtn = document.getElementById("cloudExportBtn");
+  const cloudImportFile = document.getElementById("cloudImportFile");
+  const cloudMigration = document.getElementById("cloudMigration");
+  const cloudFullBackupBtn = document.getElementById("cloudFullBackupBtn");
+  const cloudRestoreFile = document.getElementById("cloudRestoreFile");
 
-  function lockApp(message = "") {
+  let currentProfile = null;
+  let currentTab = "mine";
+  let allowedUsers = [];
+  let allOutfits = [];
+  let incomingSuggestions = [];
+  let sentSuggestions = [];
+  let suggestionTarget = null;
+
+  function esc(value) {
+    return String(value == null ? "" : value).replace(/[&<>"']/g, function(c) {
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c];
+    });
+  }
+
+  function readableDate(value) {
+    try {
+      if (!value) return "gerade eben";
+      const d = typeof value.toDate === "function" ? value.toDate() : new Date(value);
+      if (Number.isNaN(d.getTime())) return "";
+      return d.toLocaleString("de-DE");
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function sanitizeOutfit(raw, forcedName) {
+    if (!raw || !raw.torso || !raw.pants) return null;
+    const name = String(forcedName || raw.name || "Unbenannter Look").trim().slice(0,60) || "Unbenannter Look";
+    return {
+      schemaVersion: 1,
+      name: name,
+      gender: raw.gender === "male" ? "male" : "female",
+      savedAt: raw.savedAt || new Date().toISOString(),
+      torsoIndex: Math.max(0, Number(raw.torsoIndex) || 0),
+      pantsIndex: Math.max(0, Number(raw.pantsIndex) || 0),
+      torso: {
+        id: raw.torso.id,
+        description: String(raw.torso.description || "").slice(0,220),
+        texture: Math.max(0, Number(raw.torso.texture) || 0)
+      },
+      pants: {
+        id: raw.pants.id,
+        description: String(raw.pants.description || "").slice(0,220),
+        texture: Math.max(0, Number(raw.pants.texture) || 0)
+      },
+      archived: Boolean(raw.archived)
+    };
+  }
+
+  function ownerName(uid) {
+    const user = allowedUsers.find(function(x){ return x.uid === uid; });
+    return user ? user.name : "Benutzer";
+  }
+
+  function openModal(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add("open");
+    el.setAttribute("aria-hidden","false");
+  }
+
+  function closeModal(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove("open");
+    el.setAttribute("aria-hidden","true");
+  }
+
+  document.querySelectorAll("[data-close-modal]").forEach(function(btn) {
+    btn.addEventListener("click", function(){ closeModal(btn.dataset.closeModal); });
+  });
+  document.querySelectorAll(".cloudModalWrap").forEach(function(wrap) {
+    wrap.addEventListener("click", function(e){ if (e.target === wrap) closeModal(wrap.id); });
+  });
+
+  function lockApp(message) {
     document.body.classList.add("auth-locked");
     gate.style.display = "flex";
     userSession.classList.remove("active");
     sessionUserName.textContent = "";
     sessionUserRole.textContent = "";
+    cloudSummary.textContent = "Anmeldung erforderlich.";
+    cloudTabBody.innerHTML = '<div class="cloudEmpty">Bitte zuerst anmelden.</div>';
     if (message) authMessage.textContent = message;
   }
 
@@ -1655,15 +1998,14 @@ renderSavedOutfits();
     gate.style.display = "none";
     authMessage.textContent = "";
     passwordInput.value = "";
-    sessionUserName.textContent = profile?.name || "Benutzer";
-    sessionUserRole.textContent = profile?.role === "admin" ? "Administrator" : "Benutzer";
+    sessionUserName.textContent = profile.name || "Benutzer";
+    sessionUserRole.textContent = profile.role === "admin" ? "Administrator" : "Benutzer";
     userSession.classList.add("active");
   }
 
-  async function getApprovedProfile(user) {
+  async function approvedProfile(user) {
     if (!user) return null;
-    const ref = doc(db, "allowedUsers", user.uid);
-    const snap = await getDoc(ref);
+    const snap = await getDoc(doc(db, "allowedUsers", user.uid));
     if (!snap.exists()) return null;
     const data = snap.data() || {};
     return {
@@ -1673,43 +2015,534 @@ renderSavedOutfits();
     };
   }
 
-  async function verifyAndOpen(user) {
-    if (authCheckRunning) return;
-    authCheckRunning = true;
+  async function readAllowedUsers() {
+    const snap = await getDocs(collection(db, "allowedUsers"));
+    allowedUsers = snap.docs.map(function(d) {
+      const data = d.data() || {};
+      return {uid:d.id,name:String(data.name || "Benutzer"),role:String(data.role || "user")};
+    }).sort(function(a,b){ return a.name.localeCompare(b.name,"de"); });
+  }
+
+  async function readAllOutfits() {
+    const groups = await Promise.all(allowedUsers.map(async function(user) {
+      const snap = await getDocs(collection(db, "users", user.uid, "outfits"));
+      return snap.docs.map(function(d) {
+        return Object.assign({}, d.data(), {_docId:d.id,_ownerUid:user.uid,_ownerName:user.name});
+      });
+    }));
+    allOutfits = groups.flat();
+  }
+
+  async function readSuggestions() {
+    const uid = currentProfile.uid;
+    const incomingSnap = await getDocs(query(collection(db,"suggestions"), where("toUid","==",uid)));
+    const sentSnap = await getDocs(query(collection(db,"suggestions"), where("fromUid","==",uid)));
+    incomingSuggestions = incomingSnap.docs.map(function(d){ return Object.assign({},d.data(),{_id:d.id}); });
+    sentSuggestions = sentSnap.docs.map(function(d){ return Object.assign({},d.data(),{_id:d.id}); });
+  }
+
+  function sortNewest(list) {
+    return list.slice().sort(function(a,b) {
+      const ad = a.createdAt && typeof a.createdAt.toMillis === "function" ? a.createdAt.toMillis() : Date.parse(a.savedAt || 0) || 0;
+      const bd = b.createdAt && typeof b.createdAt.toMillis === "function" ? b.createdAt.toMillis() : Date.parse(b.savedAt || 0) || 0;
+      return bd - ad;
+    });
+  }
+
+  function outfitMeta(outfit) {
+    return "Torso ID " + esc(outfit.torso && outfit.torso.id) + " · Variante " + esc(outfit.torso && outfit.torso.texture) +
+      "<br>Hose ID " + esc(outfit.pants && outfit.pants.id) + " · Variante " + esc(outfit.pants && outfit.pants.texture);
+  }
+
+  function outfitCard(outfit, mode) {
+    const key = outfit._ownerUid + ":" + outfit._docId;
+    let actions = '<button class="cloudBtn" data-action="load" data-key="' + esc(key) + '">ANSEHEN / LADEN</button>';
+    if (mode === "mine") {
+      actions += '<button class="cloudBtn" data-action="rename" data-key="' + esc(key) + '">UMBENENNEN</button>';
+      actions += '<button class="cloudBtn" data-action="archive" data-key="' + esc(key) + '">ARCHIVIEREN</button>';
+      actions += '<button class="cloudBtn" data-action="suggest" data-key="' + esc(key) + '">VORSCHLAGEN</button>';
+      actions += '<button class="cloudBtn danger" data-action="delete" data-key="' + esc(key) + '">LÖSCHEN</button>';
+    } else if (mode === "others") {
+      actions += '<button class="cloudBtn" data-action="suggest" data-key="' + esc(key) + '">JEMANDEM VORSCHLAGEN</button>';
+    } else if (mode === "archive") {
+      actions += '<button class="cloudBtn" data-action="unarchive" data-key="' + esc(key) + '">WIEDER AKTIVIEREN</button>';
+      actions += '<button class="cloudBtn danger" data-action="delete" data-key="' + esc(key) + '">LÖSCHEN</button>';
+    }
+    return '<article class="cloudCard">' +
+      '<div class="cloudCardTop"><div><div class="cloudCardOwner">' + esc(outfit._ownerName || ownerName(outfit._ownerUid)) + '</div>' +
+      '<div class="cloudCardName">' + esc(outfit.name || "Unbenannter Look") + '</div>' +
+      '<div class="cloudCardMeta">' + outfitMeta(outfit) + '<br>' + esc(readableDate(outfit.updatedAt || outfit.createdAt || outfit.savedAt)) + '</div></div>' +
+      '<div class="cloudCardActions">' + actions + '</div></div></article>';
+  }
+
+  function statusLabel(status) {
+    return ({pending:"Offen",accepted:"Angenommen",declined:"Abgelehnt",withdrawn:"Zurückgezogen"})[status] || status || "Unbekannt";
+  }
+
+  function suggestionCard(item, direction) {
+    const otherUid = direction === "incoming" ? item.fromUid : item.toUid;
+    const other = ownerName(otherUid);
+    const outfit = item.outfit || {};
+    let actions = '<button class="cloudBtn" data-suggestion-action="load" data-id="' + esc(item._id) + '" data-direction="' + direction + '">LOOK LADEN</button>';
+    if (direction === "incoming" && item.status === "pending") {
+      actions += '<button class="cloudBtn primary" data-suggestion-action="accept" data-id="' + esc(item._id) + '">ÜBERNEHMEN</button>';
+      actions += '<button class="cloudBtn" data-suggestion-action="decline" data-id="' + esc(item._id) + '">ABLEHNEN</button>';
+    }
+    if (direction === "sent" && item.status === "pending") {
+      actions += '<button class="cloudBtn danger" data-suggestion-action="withdraw" data-id="' + esc(item._id) + '">ZURÜCKZIEHEN</button>';
+    }
+    return '<article class="cloudCard">' +
+      '<div class="cloudCardTop"><div><div class="cloudCardOwner">' + (direction === "incoming" ? "Von " : "An ") + esc(other) + '</div>' +
+      '<div class="cloudCardName">' + esc(outfit.name || "Outfit-Vorschlag") + '</div>' +
+      '<div class="cloudCardMeta">' + (outfit.torso && outfit.pants ? outfitMeta(outfit) : "") +
+      (item.message ? '<br><br>„' + esc(item.message) + '“' : '') +
+      '<br>' + esc(readableDate(item.createdAt)) + '</div><span class="cloudStatus">' + esc(statusLabel(item.status)) + '</span></div>' +
+      '<div class="cloudCardActions">' + actions + '</div></div></article>';
+  }
+
+  function renderTabs() {
+    document.querySelectorAll("[data-cloud-tab]").forEach(function(btn) {
+      btn.classList.toggle("active", btn.dataset.cloudTab === currentTab);
+    });
+
+    if (!currentProfile) {
+      cloudTabBody.innerHTML = '<div class="cloudEmpty">Bitte zuerst anmelden.</div>';
+      return;
+    }
+
+    const uid = currentProfile.uid;
+    let html = "";
+
+    if (currentTab === "mine") {
+      const list = sortNewest(allOutfits.filter(function(x){ return x._ownerUid === uid && !x.archived; }));
+      html = list.length ? list.map(function(x){ return outfitCard(x,"mine"); }).join("") :
+        '<div class="cloudEmpty">Noch kein Cloud-Look gespeichert. Stelle oben etwas zusammen, gib dem Look einen Namen und klicke auf „Look speichern“.</div>';
+    } else if (currentTab === "others") {
+      const list = sortNewest(allOutfits.filter(function(x){ return x._ownerUid !== uid && !x.archived; }));
+      html = list.length ? list.map(function(x){ return outfitCard(x,"others"); }).join("") :
+        '<div class="cloudEmpty">Die anderen haben noch keine sichtbaren Looks gespeichert.</div>';
+    } else if (currentTab === "incoming") {
+      const list = sortNewest(incomingSuggestions);
+      html = list.length ? list.map(function(x){ return suggestionCard(x,"incoming"); }).join("") :
+        '<div class="cloudEmpty">Aktuell gibt es keine Outfit-Vorschläge für dich.</div>';
+    } else if (currentTab === "sent") {
+      const list = sortNewest(sentSuggestions);
+      html = list.length ? list.map(function(x){ return suggestionCard(x,"sent"); }).join("") :
+        '<div class="cloudEmpty">Du hast noch keine Outfit-Vorschläge verschickt.</div>';
+    } else if (currentTab === "archive") {
+      const list = sortNewest(allOutfits.filter(function(x){ return x._ownerUid === uid && x.archived; }));
+      html = list.length ? list.map(function(x){ return outfitCard(x,"archive"); }).join("") :
+        '<div class="cloudEmpty">Dein Archiv ist leer. Archivierte Looks verschwinden aus der normalen Übersicht, bleiben aber gespeichert.</div>';
+    }
+
+    cloudTabBody.innerHTML = html;
+  }
+
+  function updateSummary() {
+    if (!currentProfile) return;
+    const uid = currentProfile.uid;
+    const own = allOutfits.filter(function(x){ return x._ownerUid === uid && !x.archived; }).length;
+    const others = allOutfits.filter(function(x){ return x._ownerUid !== uid && !x.archived; }).length;
+    const incoming = incomingSuggestions.filter(function(x){ return x.status === "pending"; }).length;
+    cloudSummary.innerHTML = "<strong>" + esc(currentProfile.name) + "</strong><br>" +
+      own + " eigene Looks<br>" + others + " Looks der anderen<br>" + incoming + " neue Vorschläge";
+  }
+
+  function updateMigrationBox() {
+    const local = bridge && bridge.localOutfits ? bridge.localOutfits() : [];
+    const key = currentProfile ? "gtaWardrobeCloudMigrated_" + currentProfile.uid : "";
+    const done = key && localStorage.getItem(key) === "1";
+    if (!local.length) {
+      cloudMigration.innerHTML = "Auf diesem Gerät wurden keine älteren lokalen Looks gefunden.";
+      return;
+    }
+    cloudMigration.innerHTML =
+      "<strong>" + local.length + " lokale Looks gefunden.</strong> " +
+      (done ? "Diese wurden bereits einmal in die Cloud übernommen. Die lokalen Kopien bleiben als zusätzliche Sicherung erhalten." :
+      "Du kannst sie einmalig in dein persönliches Cloud-Konto übernehmen. Die lokalen Kopien bleiben erhalten. " +
+      '<button class="cloudBtn" type="button" id="migrateLocalBtn">JETZT ÜBERNEHMEN</button>');
+    const btn = document.getElementById("migrateLocalBtn");
+    if (btn) btn.addEventListener("click", migrateLocalLooks);
+  }
+
+  async function refreshCloud(showMessage) {
+    if (!currentProfile) return;
+    if (showMessage) bridge.message("Cloud-Daten werden aktualisiert …");
     try {
-      const profile = await getApprovedProfile(user);
-      if (!profile) {
-        await signOut(auth);
-        lockApp("Dieses Konto ist nicht für den Wardrobe-Zugriff freigegeben.");
-        return;
-      }
-      window.wardrobeUser = profile;
-      unlockApp(profile);
-    } catch (error) {
-      console.error("Freigabeprüfung fehlgeschlagen", error);
-      lockApp("Die Zugriffsprüfung ist fehlgeschlagen. Bitte später erneut versuchen.");
-    } finally {
-      authCheckRunning = false;
+      await readAllowedUsers();
+      await Promise.all([readAllOutfits(), readSuggestions()]);
+      updateSummary();
+      renderTabs();
+      updateMigrationBox();
+      if (showMessage) bridge.message("Cloud-Daten sind aktuell.");
+    } catch (e) {
+      console.error("Cloud refresh failed", e);
+      cloudTabBody.innerHTML = '<div class="cloudEmpty">Cloud-Daten konnten nicht geladen werden. Prüfe die Firestore-Regeln und versuche es erneut.</div>';
+      cloudSummary.textContent = "Cloud-Verbindung nicht verfügbar.";
+      bridge.message("Cloud-Daten konnten nicht geladen werden.");
     }
   }
 
-  await setPersistence(auth, browserSessionPersistence);
+  async function saveCurrentLook() {
+    if (!currentProfile) return;
+    const rawName = cloudOutfitName.value.trim();
+    const name = rawName || ("Outfit " + (allOutfits.filter(function(x){ return x._ownerUid === currentProfile.uid; }).length + 1));
+    const raw = bridge.snapshot(name);
+    const outfit = sanitizeOutfit(raw,name);
+    if (!outfit) {
+      bridge.message("Für die aktuelle Auswahl fehlen Kleidungsdaten.");
+      return;
+    }
 
-  form.addEventListener("submit", async (event) => {
+    cloudSaveBtn.disabled = true;
+    try {
+      await addDoc(collection(db,"users",currentProfile.uid,"outfits"), Object.assign({},outfit,{
+        archived:false,
+        createdAt:serverTimestamp(),
+        updatedAt:serverTimestamp()
+      }));
+      cloudOutfitName.value = "";
+      currentTab = "mine";
+      await refreshCloud(false);
+      bridge.message('Look "' + name + '" wurde in deiner Cloud gespeichert.');
+    } catch (e) {
+      console.error(e);
+      bridge.message("Der Look konnte nicht gespeichert werden.");
+    } finally {
+      cloudSaveBtn.disabled = false;
+    }
+  }
+
+  function findOutfitByKey(key) {
+    const parts = String(key || "").split(":");
+    return allOutfits.find(function(x){ return x._ownerUid === parts[0] && x._docId === parts.slice(1).join(":"); });
+  }
+
+  async function changeOwnOutfit(outfit, changes, message) {
+    if (!outfit || outfit._ownerUid !== currentProfile.uid) return;
+    await updateDoc(doc(db,"users",currentProfile.uid,"outfits",outfit._docId), Object.assign({},changes,{updatedAt:serverTimestamp()}));
+    await refreshCloud(false);
+    bridge.message(message);
+  }
+
+  function populateSuggestionModal(outfit) {
+    suggestionTarget = sanitizeOutfit(outfit,outfit.name);
+    const select = document.getElementById("suggestRecipient");
+    select.innerHTML = allowedUsers.filter(function(u){ return u.uid !== currentProfile.uid; })
+      .map(function(u){ return '<option value="' + esc(u.uid) + '">' + esc(u.name) + '</option>'; }).join("");
+    document.getElementById("suggestMessage").value = "";
+    document.getElementById("suggestMessageStatus").textContent = "";
+    document.getElementById("suggestOutfitInfo").textContent =
+      (suggestionTarget ? suggestionTarget.name : "Look") + " · wird als unveränderliche Kopie verschickt.";
+    openModal("suggestModal");
+  }
+
+  async function sendSuggestion() {
+    const toUid = document.getElementById("suggestRecipient").value;
+    const message = document.getElementById("suggestMessage").value.trim().slice(0,500);
+    const statusBox = document.getElementById("suggestMessageStatus");
+    const btn = document.getElementById("sendSuggestionBtn");
+    if (!suggestionTarget || !toUid || toUid === currentProfile.uid) return;
+    btn.disabled = true;
+    statusBox.textContent = "Vorschlag wird gesendet …";
+    try {
+      await addDoc(collection(db,"suggestions"),{
+        fromUid:currentProfile.uid,
+        toUid:toUid,
+        message:message,
+        status:"pending",
+        createdAt:serverTimestamp(),
+        outfit:suggestionTarget
+      });
+      closeModal("suggestModal");
+      currentTab = "sent";
+      await refreshCloud(false);
+      bridge.message("Outfit-Vorschlag wurde gesendet.");
+    } catch (e) {
+      console.error(e);
+      statusBox.textContent = "Der Vorschlag konnte nicht gesendet werden.";
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function findSuggestion(id, direction) {
+    const list = direction === "incoming" ? incomingSuggestions : sentSuggestions;
+    return list.find(function(x){ return x._id === id; });
+  }
+
+  async function handleSuggestionAction(action,id,direction) {
+    const item = findSuggestion(id,direction);
+    if (!item) return;
+    if (action === "load") {
+      bridge.load(Object.assign({},item.outfit,{name:item.outfit && item.outfit.name ? item.outfit.name : "Vorschlag"}));
+      return;
+    }
+
+    const ref = doc(db,"suggestions",id);
+    if (action === "accept" && direction === "incoming" && item.status === "pending") {
+      const batch = writeBatch(db);
+      const newRef = doc(collection(db,"users",currentProfile.uid,"outfits"));
+      const copy = sanitizeOutfit(item.outfit,(item.outfit && item.outfit.name ? item.outfit.name : "Vorschlag") + " · von " + ownerName(item.fromUid));
+      batch.set(newRef,Object.assign({},copy,{archived:false,createdAt:serverTimestamp(),updatedAt:serverTimestamp()}));
+      batch.update(ref,{status:"accepted"});
+      await batch.commit();
+      currentTab = "mine";
+      await refreshCloud(false);
+      bridge.message("Vorschlag übernommen und als eigener Look gespeichert.");
+      return;
+    }
+    if (action === "decline" && direction === "incoming" && item.status === "pending") {
+      await updateDoc(ref,{status:"declined"});
+      await refreshCloud(false);
+      bridge.message("Vorschlag abgelehnt.");
+      return;
+    }
+    if (action === "withdraw" && direction === "sent" && item.status === "pending") {
+      await updateDoc(ref,{status:"withdrawn"});
+      await refreshCloud(false);
+      bridge.message("Vorschlag zurückgezogen.");
+    }
+  }
+
+  async function migrateLocalLooks() {
+    const local = bridge.localOutfits().map(function(x){ return sanitizeOutfit(x,x.name); }).filter(Boolean);
+    if (!local.length) return;
+    if (!confirm(local.length + " lokale Looks in dein Cloud-Konto übernehmen?")) return;
+    try {
+      const batch = writeBatch(db);
+      local.forEach(function(outfit) {
+        const ref = doc(collection(db,"users",currentProfile.uid,"outfits"));
+        batch.set(ref,Object.assign({},outfit,{archived:false,createdAt:serverTimestamp(),updatedAt:serverTimestamp()}));
+      });
+      await batch.commit();
+      localStorage.setItem("gtaWardrobeCloudMigrated_" + currentProfile.uid,"1");
+      await refreshCloud(false);
+      bridge.message(local.length + " lokale Looks wurden in die Cloud übernommen.");
+    } catch (e) {
+      console.error(e);
+      bridge.message("Lokale Looks konnten nicht übernommen werden.");
+    }
+  }
+
+  function downloadJson(filename,data) {
+    const b = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const url = URL.createObjectURL(b);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportOwnLooks() {
+    const own = allOutfits.filter(function(x){ return x._ownerUid === currentProfile.uid; })
+      .map(function(x){ return sanitizeOutfit(x,x.name); }).filter(Boolean);
+    downloadJson("wardrobe-" + currentProfile.name.toLowerCase() + "-looks.json",{
+      format:"GTA_WARDROBE_CLOUD_OUTFITS",
+      version:1,
+      exportedAt:new Date().toISOString(),
+      owner:currentProfile.name,
+      outfits:own
+    });
+    bridge.message("Deine Cloud-Looks wurden exportiert.");
+  }
+
+  async function importLooksFile(file) {
+    try {
+      const data = JSON.parse(await file.text());
+      const source = Array.isArray(data) ? data : (Array.isArray(data.outfits) ? data.outfits : data.cloudOutfits);
+      if (!Array.isArray(source)) throw new Error("Format");
+      const cleaned = source.map(function(x){ return sanitizeOutfit(x,x && x.name); }).filter(Boolean);
+      if (!cleaned.length) throw new Error("Leer");
+      if (cleaned.length > 400) throw new Error("Zu viele");
+      const batch = writeBatch(db);
+      cleaned.forEach(function(outfit) {
+        const ref = doc(collection(db,"users",currentProfile.uid,"outfits"));
+        batch.set(ref,Object.assign({},outfit,{archived:Boolean(outfit.archived),createdAt:serverTimestamp(),updatedAt:serverTimestamp()}));
+      });
+      await batch.commit();
+      currentTab = "mine";
+      await refreshCloud(false);
+      bridge.message(cleaned.length + " Look(s) wurden deinem Konto hinzugefügt.");
+    } catch (e) {
+      console.error(e);
+      bridge.message("Import fehlgeschlagen. Die Datei enthält keine gültigen Wardrobe-Looks.");
+    }
+  }
+
+  function fullBackup() {
+    const own = allOutfits.filter(function(x){ return x._ownerUid === currentProfile.uid; })
+      .map(function(x){ return sanitizeOutfit(x,x.name); }).filter(Boolean);
+    downloadJson("wardrobe-" + currentProfile.name.toLowerCase() + "-vollsicherung.json",{
+      format:"GTA_WARDROBE_ACCOUNT_BACKUP",
+      version:1,
+      createdAt:new Date().toISOString(),
+      ownerName:currentProfile.name,
+      cloudOutfits:own,
+      localStorage:bridge.localStorageDump()
+    });
+    bridge.message("Vollständige persönliche Sicherung erstellt.");
+  }
+
+  async function restoreBackup(file) {
+    try {
+      const data = JSON.parse(await file.text());
+      if (!data || data.format !== "GTA_WARDROBE_ACCOUNT_BACKUP" || !Array.isArray(data.cloudOutfits)) throw new Error("Format");
+      const typed = prompt("Diese Aktion ersetzt deine aktuellen Cloud-Looks durch die Sicherung.\\n\\nTippe WIEDERHERSTELLEN, um fortzufahren:");
+      if (typed !== "WIEDERHERSTELLEN") {
+        bridge.message("Wiederherstellung abgebrochen.");
+        return;
+      }
+      const cleaned = data.cloudOutfits.map(function(x){ return sanitizeOutfit(x,x && x.name); }).filter(Boolean);
+      const current = allOutfits.filter(function(x){ return x._ownerUid === currentProfile.uid; });
+      if (current.length + cleaned.length > 400) throw new Error("Zu viele Operationen");
+      const batch = writeBatch(db);
+      current.forEach(function(x){ batch.delete(doc(db,"users",currentProfile.uid,"outfits",x._docId)); });
+      cleaned.forEach(function(outfit){
+        const ref = doc(collection(db,"users",currentProfile.uid,"outfits"));
+        batch.set(ref,Object.assign({},outfit,{createdAt:serverTimestamp(),updatedAt:serverTimestamp()}));
+      });
+      await batch.commit();
+      if (data.localStorage && typeof data.localStorage === "object") bridge.restoreLocalStorage(data.localStorage);
+      currentTab = "mine";
+      await refreshCloud(false);
+      bridge.message("Persönliche Sicherung wurde wiederhergestellt.");
+    } catch (e) {
+      console.error(e);
+      bridge.message("Wiederherstellung fehlgeschlagen. Datei ungültig oder zu groß.");
+    }
+  }
+
+  cloudSaveBtn.addEventListener("click", saveCurrentLook);
+  cloudOutfitName.addEventListener("keydown", function(e){ if (e.key === "Enter") saveCurrentLook(); });
+  cloudRefreshBtn.addEventListener("click", function(){ refreshCloud(true); });
+  cloudExportBtn.addEventListener("click", exportOwnLooks);
+  cloudImportFile.addEventListener("change", function(e) {
+    const file = e.target.files && e.target.files[0];
+    if (file) importLooksFile(file);
+    e.target.value = "";
+  });
+  cloudFullBackupBtn.addEventListener("click", fullBackup);
+  cloudRestoreFile.addEventListener("change", function(e) {
+    const file = e.target.files && e.target.files[0];
+    if (file) restoreBackup(file);
+    e.target.value = "";
+  });
+
+  document.querySelectorAll("[data-cloud-tab]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      currentTab = btn.dataset.cloudTab;
+      renderTabs();
+    });
+  });
+
+  cloudTabBody.addEventListener("click", async function(e) {
+    const actionBtn = e.target.closest("[data-action]");
+    if (actionBtn) {
+      const outfit = findOutfitByKey(actionBtn.dataset.key);
+      if (!outfit) return;
+      const action = actionBtn.dataset.action;
+      try {
+        if (action === "load") bridge.load(outfit);
+        else if (action === "suggest") populateSuggestionModal(outfit);
+        else if (action === "archive") await changeOwnOutfit(outfit,{archived:true},"Look wurde archiviert.");
+        else if (action === "unarchive") await changeOwnOutfit(outfit,{archived:false},"Look ist wieder aktiv.");
+        else if (action === "rename") {
+          const name = prompt("Neuer Name für den Look:",outfit.name || "");
+          if (name && name.trim()) await changeOwnOutfit(outfit,{name:name.trim().slice(0,60)},"Look wurde umbenannt.");
+        } else if (action === "delete") {
+          if (confirm('Look "' + (outfit.name || "Unbenannt") + '" wirklich löschen?')) {
+            await deleteDoc(doc(db,"users",currentProfile.uid,"outfits",outfit._docId));
+            await refreshCloud(false);
+            bridge.message("Look wurde gelöscht.");
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        bridge.message("Aktion konnte nicht ausgeführt werden.");
+      }
+      return;
+    }
+
+    const suggestionBtn = e.target.closest("[data-suggestion-action]");
+    if (suggestionBtn) {
+      try {
+        await handleSuggestionAction(
+          suggestionBtn.dataset.suggestionAction,
+          suggestionBtn.dataset.id,
+          suggestionBtn.dataset.direction
+        );
+      } catch (err) {
+        console.error(err);
+        bridge.message("Vorschlag konnte nicht verarbeitet werden.");
+      }
+    }
+  });
+
+  document.getElementById("sendSuggestionBtn").addEventListener("click", sendSuggestion);
+
+  accountSecurityBtn.addEventListener("click", function() {
+    document.getElementById("currentPassword").value = "";
+    document.getElementById("newPassword").value = "";
+    document.getElementById("newPasswordRepeat").value = "";
+    document.getElementById("passwordChangeStatus").textContent = "";
+    openModal("accountModal");
+  });
+
+  document.getElementById("passwordChangeForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const oldPassword = document.getElementById("currentPassword").value;
+    const newPassword = document.getElementById("newPassword").value;
+    const repeat = document.getElementById("newPasswordRepeat").value;
+    const msg = document.getElementById("passwordChangeStatus");
+    const btn = document.getElementById("passwordChangeBtn");
+
+    if (newPassword.length < 10) {
+      msg.textContent = "Das neue Passwort muss mindestens 10 Zeichen lang sein.";
+      return;
+    }
+    if (newPassword !== repeat) {
+      msg.textContent = "Die beiden neuen Passwörter stimmen nicht überein.";
+      return;
+    }
+    if (!auth.currentUser || !auth.currentUser.email) {
+      msg.textContent = "Es ist kein Benutzer angemeldet.";
+      return;
+    }
+
+    btn.disabled = true;
+    msg.textContent = "Passwort wird geprüft …";
+    try {
+      const credential = EmailAuthProvider.credential(auth.currentUser.email,oldPassword);
+      await reauthenticateWithCredential(auth.currentUser,credential);
+      await updatePassword(auth.currentUser,newPassword);
+      msg.textContent = "Passwort erfolgreich geändert.";
+      document.getElementById("currentPassword").value = "";
+      document.getElementById("newPassword").value = "";
+      document.getElementById("newPasswordRepeat").value = "";
+      bridge.message("Dein Passwort wurde geändert.");
+    } catch (err) {
+      console.error(err);
+      msg.textContent = "Passwort konnte nicht geändert werden. Prüfe dein aktuelles Passwort.";
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  await setPersistence(auth,browserSessionPersistence);
+
+  form.addEventListener("submit", async function(event) {
     event.preventDefault();
     authMessage.textContent = "";
     loginButton.disabled = true;
     loginButton.textContent = "PRÜFE ZUGRIFF …";
-
-    const key = userSelect.value;
-    const email = LOGIN_EMAILS[key];
-    const password = passwordInput.value;
-
     try {
-      const credential = await signInWithEmailAndPassword(auth, email, password);
-      await verifyAndOpen(credential.user);
+      await signInWithEmailAndPassword(auth,LOGIN_EMAILS[userSelect.value],passwordInput.value);
     } catch (error) {
-      console.error("Anmeldung fehlgeschlagen", error);
+      console.error("Anmeldung fehlgeschlagen",error);
       lockApp("Anmeldung nicht möglich. Benutzer oder Passwort ist nicht korrekt.");
       passwordInput.select();
     } finally {
@@ -1718,24 +2551,39 @@ renderSavedOutfits();
     }
   });
 
-  logoutBtn.addEventListener("click", async () => {
-    try {
-      await signOut(auth);
-    } finally {
-      window.wardrobeUser = null;
-      lockApp("Du wurdest abgemeldet.");
-    }
+  logoutBtn.addEventListener("click", async function() {
+    await signOut(auth);
   });
 
-  onAuthStateChanged(auth, async (user) => {
+  onAuthStateChanged(auth, async function(user) {
     if (!user) {
+      currentProfile = null;
+      allowedUsers = [];
+      allOutfits = [];
+      incomingSuggestions = [];
+      sentSuggestions = [];
       window.wardrobeUser = null;
       lockApp();
       return;
     }
-    await verifyAndOpen(user);
+    try {
+      const profile = await approvedProfile(user);
+      if (!profile) {
+        await signOut(auth);
+        lockApp("Dieses Konto ist nicht für den Wardrobe-Zugriff freigegeben.");
+        return;
+      }
+      currentProfile = profile;
+      window.wardrobeUser = profile;
+      unlockApp(profile);
+      await refreshCloud(false);
+    } catch (error) {
+      console.error("Freigabeprüfung fehlgeschlagen",error);
+      lockApp("Die Zugriffsprüfung ist fehlgeschlagen. Bitte später erneut versuchen.");
+    }
   });
 </script>
+
 
 </body>
 </html>
