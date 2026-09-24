@@ -1927,7 +1927,7 @@ window.WardrobeBridge = {
   }
 
   function safeGarmentId(value) {
-    if (typeof value === "number" && Number.isFinite(value)) return Math.trunc(value);
+    if (typeof value === "number" && Number.isFinite(value)) return Math.max(0, Math.trunc(value));
     const text = String(value == null ? "" : value).trim().slice(0,120);
     return text || "0";
   }
@@ -2001,6 +2001,35 @@ window.WardrobeBridge = {
       },
       archived: Boolean(raw.archived)
     };
+  }
+
+  function validIncomingGarment(part) {
+    if (!part || typeof part !== "object" || Array.isArray(part)) return false;
+
+    const id = part.id;
+    const validId =
+      (typeof id === "number" && Number.isFinite(id) && Number.isInteger(id) && id >= 0) ||
+      (typeof id === "string" && id.trim().length > 0 && id.trim().length <= 120);
+
+    return validId
+      && typeof part.description === "string"
+      && part.description.length <= 220
+      && typeof part.texture === "number"
+      && Number.isFinite(part.texture)
+      && Number.isInteger(part.texture)
+      && part.texture >= 0;
+  }
+
+  function validIncomingOutfit(raw) {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
+    if (raw.schemaVersion != null && raw.schemaVersion !== 1) return false;
+    if (typeof raw.name !== "string" || raw.name.trim().length > 60) return false;
+    if (raw.gender !== "female" && raw.gender !== "male") return false;
+    if (typeof raw.savedAt !== "string" || !raw.savedAt.trim() || raw.savedAt.trim().length > 80) return false;
+    if (typeof raw.torsoIndex !== "number" || !Number.isFinite(raw.torsoIndex) || !Number.isInteger(raw.torsoIndex) || raw.torsoIndex < 0) return false;
+    if (typeof raw.pantsIndex !== "number" || !Number.isFinite(raw.pantsIndex) || !Number.isInteger(raw.pantsIndex) || raw.pantsIndex < 0) return false;
+    if (raw.archived != null && typeof raw.archived !== "boolean") return false;
+    return validIncomingGarment(raw.torso) && validIncomingGarment(raw.pants);
   }
 
   function outfitFingerprint(raw) {
@@ -2561,6 +2590,7 @@ window.WardrobeBridge = {
       if (!Array.isArray(source)) throw new Error("Format");
       if (!source.length) throw new Error("Leer");
       if (source.length > 400) throw new Error("Zu viele");
+      if (source.some(function(x){ return !validIncomingOutfit(x); })) throw new Error("Ungültige Looks");
 
       const cleaned = source.map(function(x){ return sanitizeOutfit(x,x && x.name); }).filter(Boolean);
       if (cleaned.length !== source.length) throw new Error("Ungültige Looks");
@@ -2662,6 +2692,7 @@ window.WardrobeBridge = {
       if (!backupOwnerUid && backupOwnerName && backupOwnerName !== session.name) throw new Error("Falsches Konto");
       if (!backupOwnerUid && !backupOwnerName) throw new Error("Kontozuordnung fehlt");
 
+      if (data.cloudOutfits.some(function(x){ return !validIncomingOutfit(x); })) throw new Error("Ungültige Looks");
       const cleaned = data.cloudOutfits.map(function(x){ return sanitizeOutfit(x,x && x.name); }).filter(Boolean);
       if (cleaned.length !== data.cloudOutfits.length) throw new Error("Ungültige Looks");
 
