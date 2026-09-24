@@ -13,6 +13,6 @@ Gemeinsame Wardrobe-App für Tim, Ray, Andy und Kata.
 - Eigenes Passwort unter „Konto & Sicherheit“ ändern
 - Damen-/Herren-Bereiche vorbereitet
 
-Die fertige App liegt ausschließlich in `index.html`. Diese Datei ist die gemeinsame Quelle für GitHub Pages und Firebase Hosting. Eine zweite Kopie unter `public/index.html` wird nicht mehr gepflegt.
+Die App ist in `index.html` (Markup), `style.css` (Darstellung) und `app.js` (Logik, Katalogdaten und Firebase-Anbindung) aufgeteilt. GitHub Pages und Firebase Hosting verwenden gemeinsam diese Dateien.
 
 Firestore-Regeln liegen versioniert in `firestore.rules`.
