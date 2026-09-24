@@ -26,7 +26,7 @@ service cloud.firestore {
         && part.texture >= 0;
     }
 
-    function validOutfitFields(outfit) {
+    function validOutfitFieldsV1(outfit) {
       return outfit.schemaVersion == 1
         && outfit.name is string
         && outfit.name.size() > 0
@@ -44,64 +44,178 @@ service cloud.firestore {
         && outfit.archived is bool;
     }
 
+    function validOutfitFieldsV2(outfit) {
+      return outfit.schemaVersion == 2
+        && outfit.name is string
+        && outfit.name.size() > 0
+        && outfit.name.size() <= 60
+        && outfit.gender in ['female', 'male']
+        && outfit.savedAt is string
+        && outfit.savedAt.size() > 0
+        && outfit.savedAt.size() <= 80
+        && outfit.torsoIndex is int
+        && outfit.torsoIndex >= 0
+        && outfit.vestIndex is int
+        && outfit.vestIndex >= 0
+        && outfit.pantsIndex is int
+        && outfit.pantsIndex >= 0
+        && outfit.shoesIndex is int
+        && outfit.shoesIndex >= 0
+        && outfit.tshirtIndex is int
+        && outfit.tshirtIndex >= 0
+        && validGarment(outfit.torso)
+        && validGarment(outfit.vest)
+        && validGarment(outfit.pants)
+        && validGarment(outfit.shoes)
+        && validGarment(outfit.tshirt)
+        && outfit.archived is bool;
+    }
+
     function validOutfit(outfit) {
-      return outfit is map
-        && outfit.keys().hasAll([
-          'schemaVersion',
-          'name',
-          'gender',
-          'savedAt',
-          'torsoIndex',
-          'pantsIndex',
-          'torso',
-          'pants',
-          'archived'
-        ])
-        && outfit.keys().hasOnly([
-          'schemaVersion',
-          'name',
-          'gender',
-          'savedAt',
-          'torsoIndex',
-          'pantsIndex',
-          'torso',
-          'pants',
-          'archived'
-        ])
-        && validOutfitFields(outfit);
+      return outfit is map && (
+        (
+          outfit.keys().hasAll([
+            'schemaVersion',
+            'name',
+            'gender',
+            'savedAt',
+            'torsoIndex',
+            'pantsIndex',
+            'torso',
+            'pants',
+            'archived'
+          ])
+          && outfit.keys().hasOnly([
+            'schemaVersion',
+            'name',
+            'gender',
+            'savedAt',
+            'torsoIndex',
+            'pantsIndex',
+            'torso',
+            'pants',
+            'archived'
+          ])
+          && validOutfitFieldsV1(outfit)
+        )
+        ||
+        (
+          outfit.keys().hasAll([
+            'schemaVersion',
+            'name',
+            'gender',
+            'savedAt',
+            'torsoIndex',
+            'vestIndex',
+            'pantsIndex',
+            'shoesIndex',
+            'tshirtIndex',
+            'torso',
+            'vest',
+            'pants',
+            'shoes',
+            'tshirt',
+            'archived'
+          ])
+          && outfit.keys().hasOnly([
+            'schemaVersion',
+            'name',
+            'gender',
+            'savedAt',
+            'torsoIndex',
+            'vestIndex',
+            'pantsIndex',
+            'shoesIndex',
+            'tshirtIndex',
+            'torso',
+            'vest',
+            'pants',
+            'shoes',
+            'tshirt',
+            'archived'
+          ])
+          && validOutfitFieldsV2(outfit)
+        )
+      );
     }
 
     function validStoredOutfit(outfit) {
       return outfit is map
-        && outfit.keys().hasAll([
-          'schemaVersion',
-          'name',
-          'gender',
-          'savedAt',
-          'torsoIndex',
-          'pantsIndex',
-          'torso',
-          'pants',
-          'archived',
-          'createdAt',
-          'updatedAt'
-        ])
-        && outfit.keys().hasOnly([
-          'schemaVersion',
-          'name',
-          'gender',
-          'savedAt',
-          'torsoIndex',
-          'pantsIndex',
-          'torso',
-          'pants',
-          'archived',
-          'createdAt',
-          'updatedAt'
-        ])
-        && validOutfitFields(outfit)
         && outfit.createdAt is timestamp
-        && outfit.updatedAt is timestamp;
+        && outfit.updatedAt is timestamp
+        && (
+          (
+            outfit.keys().hasAll([
+              'schemaVersion',
+              'name',
+              'gender',
+              'savedAt',
+              'torsoIndex',
+              'pantsIndex',
+              'torso',
+              'pants',
+              'archived',
+              'createdAt',
+              'updatedAt'
+            ])
+            && outfit.keys().hasOnly([
+              'schemaVersion',
+              'name',
+              'gender',
+              'savedAt',
+              'torsoIndex',
+              'pantsIndex',
+              'torso',
+              'pants',
+              'archived',
+              'createdAt',
+              'updatedAt'
+            ])
+            && validOutfitFieldsV1(outfit)
+          )
+          ||
+          (
+            outfit.keys().hasAll([
+              'schemaVersion',
+              'name',
+              'gender',
+              'savedAt',
+              'torsoIndex',
+              'vestIndex',
+              'pantsIndex',
+              'shoesIndex',
+              'tshirtIndex',
+              'torso',
+              'vest',
+              'pants',
+              'shoes',
+              'tshirt',
+              'archived',
+              'createdAt',
+              'updatedAt'
+            ])
+            && outfit.keys().hasOnly([
+              'schemaVersion',
+              'name',
+              'gender',
+              'savedAt',
+              'torsoIndex',
+              'vestIndex',
+              'pantsIndex',
+              'shoesIndex',
+              'tshirtIndex',
+              'torso',
+              'vest',
+              'pants',
+              'shoes',
+              'tshirt',
+              'archived',
+              'createdAt',
+              'updatedAt'
+            ])
+            && validOutfitFieldsV2(outfit)
+          )
+        );
     }
 
     match /allowedUsers/{uid} {
