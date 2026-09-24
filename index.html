@@ -1825,12 +1825,19 @@ window.WardrobeBridge = {
     return data;
   },
   restoreLocalStorage: function(data, allowedKeys) {
-    if (!data || typeof data !== "object" || !Array.isArray(allowedKeys)) return;
+    if (!data || typeof data !== "object" || !Array.isArray(allowedKeys)) return true;
     const allowed = new Set(allowedKeys.map(String));
+    let restored = true;
     Object.entries(data).forEach(function(entry) {
       const key = entry[0], value = entry[1];
-      if (key.startsWith("gtaWardrobe") && allowed.has(key)) localStorage.setItem(key, String(value));
+      if (!key.startsWith("gtaWardrobe") || !allowed.has(key)) return;
+      try {
+        localStorage.setItem(key, String(value));
+      } catch (e) {
+        restored = false;
+      }
     });
+    return restored;
   }
 };
 </script>
@@ -1954,6 +1961,25 @@ window.WardrobeBridge = {
     );
   }
 
+  function readMigrationMarker(key) {
+    if (!key) return false;
+    try {
+      return localStorage.getItem(key) === "1";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function writeMigrationMarker(key) {
+    if (!key) return false;
+    try {
+      localStorage.setItem(key,"1");
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function esc(value) {
     return String(value == null ? "" : value).replace(/[&<>"']/g, function(c) {
       return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c];
@@ -2023,7 +2049,7 @@ window.WardrobeBridge = {
   function validIncomingOutfit(raw) {
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
     if (raw.schemaVersion != null && raw.schemaVersion !== 1) return false;
-    if (typeof raw.name !== "string" || raw.name.trim().length > 60) return false;
+    if (typeof raw.name !== "string" || !raw.name.trim() || raw.name.trim().length > 60) return false;
     if (raw.gender !== "female" && raw.gender !== "male") return false;
     if (typeof raw.savedAt !== "string" || !raw.savedAt.trim() || raw.savedAt.trim().length > 80) return false;
     if (typeof raw.torsoIndex !== "number" || !Number.isFinite(raw.torsoIndex) || !Number.isInteger(raw.torsoIndex) || raw.torsoIndex < 0) return false;
@@ -2250,13 +2276,21 @@ window.WardrobeBridge = {
   }
 
   function updateMigrationBox() {
-    const local = bridge && bridge.localOutfits
-      ? bridge.localOutfits().map(function(x){ return sanitizeOutfit(x,x && x.name); }).filter(Boolean)
-      : [];
+    const rawLocal = bridge && bridge.localOutfits ? bridge.localOutfits() : [];
+    const local = rawLocal
+      .filter(validIncomingOutfit)
+      .map(function(x){ return sanitizeOutfit(x,x && x.name); })
+      .filter(Boolean);
+    const invalidCount = rawLocal.length - local.length;
     const key = currentProfile ? "gtaWardrobeCloudMigrated_" + currentProfile.uid : "";
+    const invalidNote = invalidCount
+      ? " " + invalidCount + " beschädigte lokale " + (invalidCount === 1 ? "Datei wurde" : "Dateien wurden") + " ignoriert."
+      : "";
 
     if (!currentProfile || !local.length) {
-      cloudMigration.innerHTML = "Auf diesem Gerät wurden keine älteren lokalen Looks gefunden.";
+      cloudMigration.textContent = invalidCount
+        ? "Es wurden keine gültigen älteren lokalen Looks gefunden." + invalidNote
+        : "Auf diesem Gerät wurden keine älteren lokalen Looks gefunden.";
       return;
     }
 
@@ -2269,17 +2303,20 @@ window.WardrobeBridge = {
     const pending = local.filter(function(outfit){ return !existing.has(outfitFingerprint(outfit)); });
 
     if (!pending.length) {
-      if (key) localStorage.setItem(key,"1");
-      cloudMigration.innerHTML = "Die vorhandenen lokalen Looks sind bereits in deinem Cloud-Konto berücksichtigt. Die lokalen Kopien bleiben erhalten.";
+      writeMigrationMarker(key);
+      cloudMigration.textContent =
+        "Die vorhandenen lokalen Looks sind bereits in deinem Cloud-Konto berücksichtigt. Die lokalen Kopien bleiben erhalten." +
+        invalidNote;
       return;
     }
 
-    const done = key && localStorage.getItem(key) === "1";
+    const done = readMigrationMarker(key);
     cloudMigration.innerHTML =
       "<strong>" + pending.length + " noch nicht übernommene lokale Looks gefunden.</strong> " +
       (done ? "Seit der letzten Übernahme sind weitere lokale Looks hinzugekommen. " :
       "Du kannst sie in dein persönliches Cloud-Konto übernehmen. ") +
-      'Die lokalen Kopien bleiben erhalten. <button class="cloudBtn" type="button" id="migrateLocalBtn">JETZT ÜBERNEHMEN</button>';
+      'Die lokalen Kopien bleiben erhalten. <button class="cloudBtn" type="button" id="migrateLocalBtn">JETZT ÜBERNEHMEN</button>' +
+      esc(invalidNote);
     const btn = document.getElementById("migrateLocalBtn");
     if (btn) btn.addEventListener("click", migrateLocalLooks);
   }
@@ -2486,8 +2523,18 @@ window.WardrobeBridge = {
     const session = captureSession();
     if (!session) return;
 
-    const local = bridge.localOutfits().map(function(x){ return sanitizeOutfit(x,x && x.name); }).filter(Boolean);
-    if (!local.length) return;
+    const rawLocal = bridge.localOutfits();
+    const local = rawLocal
+      .filter(validIncomingOutfit)
+      .map(function(x){ return sanitizeOutfit(x,x && x.name); })
+      .filter(Boolean);
+    const invalidCount = rawLocal.length - local.length;
+    if (!local.length) {
+      if (invalidCount && sessionIsCurrent(session)) {
+        bridge.message("Die lokalen Looks sind beschädigt und wurden nicht in die Cloud übernommen.");
+      }
+      return;
+    }
 
     try {
       const snap = await getDocs(collection(db,"users",session.uid,"outfits"));
@@ -2508,7 +2555,7 @@ window.WardrobeBridge = {
       });
 
       if (!pending.length) {
-        localStorage.setItem("gtaWardrobeCloudMigrated_" + session.uid,"1");
+        writeMigrationMarker("gtaWardrobeCloudMigrated_" + session.uid);
         await refreshCloud(false,session.revision);
         if (sessionIsCurrent(session)) bridge.message("Alle lokalen Looks sind bereits in deinem Cloud-Konto vorhanden.");
         return;
@@ -2529,7 +2576,7 @@ window.WardrobeBridge = {
         if (!sessionIsCurrent(session)) return;
       }
 
-      localStorage.setItem("gtaWardrobeCloudMigrated_" + session.uid,"1");
+      writeMigrationMarker("gtaWardrobeCloudMigrated_" + session.uid);
       await refreshCloud(false,session.revision);
       if (sessionIsCurrent(session)) bridge.message(pending.length + " lokale Looks wurden in die Cloud übernommen.");
     } catch (e) {
@@ -2727,13 +2774,19 @@ window.WardrobeBridge = {
       if (!sessionIsCurrent(session)) return;
 
       const migrationKey = "gtaWardrobeCloudMigrated_" + session.uid;
-      if (data.localStorage && typeof data.localStorage === "object") {
-        bridge.restoreLocalStorage(data.localStorage,[migrationKey]);
-      }
+      const localMarkerRestored = data.localStorage && typeof data.localStorage === "object"
+        ? bridge.restoreLocalStorage(data.localStorage,[migrationKey])
+        : true;
 
       currentTab = "mine";
       await refreshCloud(false,session.revision);
-      if (sessionIsCurrent(session)) bridge.message("Persönliche Sicherung wurde wiederhergestellt.");
+      if (sessionIsCurrent(session)) {
+        bridge.message(
+          localMarkerRestored
+            ? "Persönliche Sicherung wurde wiederhergestellt."
+            : "Cloud-Looks wurden wiederhergestellt. Der lokale Migrationsstatus konnte in diesem Browser nicht gespeichert werden."
+        );
+      }
     } catch (e) {
       console.error(e);
       if (sessionIsCurrent(session)) {
