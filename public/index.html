@@ -1924,6 +1924,7 @@ window.WardrobeBridge = {
   let sentSuggestions = [];
   let suggestionTarget = null;
   let authRevision = 0;
+  let activeOutfitWrite = "";
 
   const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
   const MAX_BACKUP_BYTES = 6 * 1024 * 1024;
@@ -1960,6 +1961,19 @@ window.WardrobeBridge = {
       auth.currentUser &&
       auth.currentUser.uid === session.uid
     );
+  }
+
+  function beginOutfitWrite(operation) {
+    if (activeOutfitWrite) {
+      bridge.message("Eine andere Cloud-Aktion läuft bereits. Bitte schließe sie zuerst ab.");
+      return false;
+    }
+    activeOutfitWrite = operation;
+    return true;
+  }
+
+  function endOutfitWrite(operation) {
+    if (activeOutfitWrite === operation) activeOutfitWrite = "";
   }
 
   function readMigrationMarker(key) {
@@ -2370,6 +2384,9 @@ window.WardrobeBridge = {
       return;
     }
 
+    const writeOperation = "save-current-look";
+    if (!beginOutfitWrite(writeOperation)) return;
+
     cloudSaveBtn.disabled = true;
     try {
       await addDoc(collection(db,"users",session.uid,"outfits"), Object.assign({},outfit,{
@@ -2389,6 +2406,7 @@ window.WardrobeBridge = {
       if (sessionIsCurrent(session)) bridge.message("Der Look konnte nicht gespeichert werden.");
     } finally {
       cloudSaveBtn.disabled = false;
+      endOutfitWrite(writeOperation);
     }
   }
 
@@ -2401,15 +2419,22 @@ window.WardrobeBridge = {
     const session = captureSession();
     if (!session || !outfit || outfit._ownerUid !== session.uid) return;
 
-    await updateDoc(
-      doc(db,"users",session.uid,"outfits",outfit._docId),
-      Object.assign({},changes,{updatedAt:serverTimestamp()})
-    );
-    if (!sessionIsCurrent(session)) return;
+    const writeOperation = "change-outfit:" + outfit._docId;
+    if (!beginOutfitWrite(writeOperation)) return;
 
-    await refreshCloud(false,session.revision);
-    if (!sessionIsCurrent(session)) return;
-    bridge.message(message);
+    try {
+      await updateDoc(
+        doc(db,"users",session.uid,"outfits",outfit._docId),
+        Object.assign({},changes,{updatedAt:serverTimestamp()})
+      );
+      if (!sessionIsCurrent(session)) return;
+
+      await refreshCloud(false,session.revision);
+      if (!sessionIsCurrent(session)) return;
+      bridge.message(message);
+    } finally {
+      endOutfitWrite(writeOperation);
+    }
   }
 
   function populateSuggestionModal(outfit) {
@@ -2502,44 +2527,51 @@ window.WardrobeBridge = {
 
     const ref = doc(db,"suggestions",id);
     if (action === "accept" && direction === "incoming" && item.status === "pending") {
-      const newRef = doc(collection(db,"users",session.uid,"outfits"));
+      const writeOperation = "accept-suggestion:" + id;
+      if (!beginOutfitWrite(writeOperation)) return;
 
-      await runTransaction(db, async function(transaction) {
-        const fresh = await transaction.get(ref);
-        if (!fresh.exists()) throw new Error("Vorschlag nicht gefunden");
+      try {
+        const newRef = doc(collection(db,"users",session.uid,"outfits"));
 
-        const freshData = fresh.data() || {};
-        if (
-          freshData.toUid !== session.uid ||
-          freshData.status !== "pending" ||
-          !sessionIsCurrent(session)
-        ) {
-          throw new Error("Vorschlag nicht mehr offen");
-        }
+        await runTransaction(db, async function(transaction) {
+          const fresh = await transaction.get(ref);
+          if (!fresh.exists()) throw new Error("Vorschlag nicht gefunden");
 
-        const copy = sanitizeOutfit(
-          freshData.outfit,
-          (freshData.outfit && freshData.outfit.name ? freshData.outfit.name : "Vorschlag") +
-            " · von " + ownerName(freshData.fromUid)
-        );
-        if (!copy) throw new Error("Ungültiger Vorschlag");
+          const freshData = fresh.data() || {};
+          if (
+            freshData.toUid !== session.uid ||
+            freshData.status !== "pending" ||
+            !sessionIsCurrent(session)
+          ) {
+            throw new Error("Vorschlag nicht mehr offen");
+          }
 
-        transaction.set(
-          newRef,
-          Object.assign({},copy,{
-            archived:false,
-            createdAt:serverTimestamp(),
-            updatedAt:serverTimestamp()
-          })
-        );
-        transaction.update(ref,{status:"accepted"});
-      });
-      if (!sessionIsCurrent(session)) return;
+          const copy = sanitizeOutfit(
+            freshData.outfit,
+            (freshData.outfit && freshData.outfit.name ? freshData.outfit.name : "Vorschlag") +
+              " · von " + ownerName(freshData.fromUid)
+          );
+          if (!copy) throw new Error("Ungültiger Vorschlag");
 
-      currentTab = "mine";
-      await refreshCloud(false,session.revision);
-      if (!sessionIsCurrent(session)) return;
-      bridge.message("Vorschlag übernommen und als eigener Look gespeichert.");
+          transaction.set(
+            newRef,
+            Object.assign({},copy,{
+              archived:false,
+              createdAt:serverTimestamp(),
+              updatedAt:serverTimestamp()
+            })
+          );
+          transaction.update(ref,{status:"accepted"});
+        });
+        if (!sessionIsCurrent(session)) return;
+
+        currentTab = "mine";
+        await refreshCloud(false,session.revision);
+        if (!sessionIsCurrent(session)) return;
+        bridge.message("Vorschlag übernommen und als eigener Look gespeichert.");
+      } finally {
+        endOutfitWrite(writeOperation);
+      }
       return;
     }
     if (action === "decline" && direction === "incoming" && item.status === "pending") {
@@ -2575,6 +2607,9 @@ window.WardrobeBridge = {
       }
       return;
     }
+
+    const writeOperation = "migrate-local-looks";
+    if (!beginOutfitWrite(writeOperation)) return;
 
     try {
       const snap = await getDocs(collection(db,"users",session.uid,"outfits"));
@@ -2626,6 +2661,8 @@ window.WardrobeBridge = {
       if (sessionIsCurrent(session)) {
         bridge.message("Lokale Looks konnten nicht vollständig übernommen werden. Bereits übernommene Duplikate werden beim nächsten Versuch übersprungen.");
       }
+    } finally {
+      endOutfitWrite(writeOperation);
     }
   }
 
@@ -2672,6 +2709,9 @@ window.WardrobeBridge = {
     const session = captureSession();
     if (!session) return;
 
+    const writeOperation = "import-looks";
+    if (!beginOutfitWrite(writeOperation)) return;
+
     try {
       if (!file || file.size > MAX_IMPORT_BYTES) throw new Error("Datei zu groß");
       const fileText = await file.text();
@@ -2687,11 +2727,14 @@ window.WardrobeBridge = {
       const cleaned = source.map(function(x){ return sanitizeOutfit(x,x && x.name); }).filter(Boolean);
       if (cleaned.length !== source.length) throw new Error("Ungültige Looks");
 
+      const currentSnap = await getDocs(collection(db,"users",session.uid,"outfits"));
+      if (!sessionIsCurrent(session)) return;
+
       const seen = new Set(
-        allOutfits
-          .filter(function(x){ return x._ownerUid === session.uid; })
-          .map(outfitFingerprint)
+        currentSnap.docs
+          .map(function(d){ return sanitizeOutfit(d.data(), d.data() && d.data().name); })
           .filter(Boolean)
+          .map(outfitFingerprint)
       );
       const pending = cleaned.filter(function(outfit) {
         const key = outfitFingerprint(outfit);
@@ -2728,6 +2771,8 @@ window.WardrobeBridge = {
       if (sessionIsCurrent(session)) {
         bridge.message("Import fehlgeschlagen. Die Datei ist ungültig, zu groß oder enthält fehlerhafte Wardrobe-Looks.");
       }
+    } finally {
+      endOutfitWrite(writeOperation);
     }
   }
 
@@ -2769,6 +2814,9 @@ window.WardrobeBridge = {
   async function restoreBackup(file) {
     const session = captureSession();
     if (!session) return;
+
+    const writeOperation = "restore-backup";
+    if (!beginOutfitWrite(writeOperation)) return;
 
     try {
       if (!file || file.size > MAX_BACKUP_BYTES) throw new Error("Datei zu groß");
@@ -2832,6 +2880,8 @@ window.WardrobeBridge = {
       if (sessionIsCurrent(session)) {
         bridge.message("Wiederherstellung fehlgeschlagen. Prüfe Datei, Konto-Zuordnung und Anzahl der Looks.");
       }
+    } finally {
+      endOutfitWrite(writeOperation);
     }
   }
 
@@ -2881,11 +2931,17 @@ window.WardrobeBridge = {
             return;
           }
           if (confirm('Look "' + (outfit.name || "Unbenannt") + '" wirklich löschen?')) {
-            if (!sessionIsCurrent(actionSession)) return;
-            await deleteDoc(doc(db,"users",actionSession.uid,"outfits",outfit._docId));
-            if (!sessionIsCurrent(actionSession)) return;
-            await refreshCloud(false,actionSession.revision);
-            if (sessionIsCurrent(actionSession)) bridge.message("Look wurde gelöscht.");
+            const writeOperation = "delete-outfit:" + outfit._docId;
+            if (!beginOutfitWrite(writeOperation)) return;
+            try {
+              if (!sessionIsCurrent(actionSession)) return;
+              await deleteDoc(doc(db,"users",actionSession.uid,"outfits",outfit._docId));
+              if (!sessionIsCurrent(actionSession)) return;
+              await refreshCloud(false,actionSession.revision);
+              if (sessionIsCurrent(actionSession)) bridge.message("Look wurde gelöscht.");
+            } finally {
+              endOutfitWrite(writeOperation);
+            }
           }
         }
       } catch (err) {
