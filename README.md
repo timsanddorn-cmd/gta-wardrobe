@@ -12,6 +12,8 @@ Gemeinsame Wardrobe-App für Tim, Ray, Andy und Kata.
 - Übernahme älterer lokaler Looks
 - Eigenes Passwort unter „Konto & Sicherheit“ ändern
 - Damen-/Herren-Bereiche vorbereitet
+- Damen-Katalog mit Torso, Weste, Hose, Schuhe und T-Shirt
+- Neue Looks speichern alle fünf Kleidungsbereiche; bestehende ältere Zwei-Teil-Looks bleiben kompatibel
 
 Die App ist in `index.html` (Markup), `style.css` (Darstellung) und `app.js` (Logik, Katalogdaten und Firebase-Anbindung) aufgeteilt. GitHub Pages und Firebase Hosting verwenden gemeinsam diese Dateien.
 
