@@ -6,172 +6,164 @@ const catalogs = {
   }
 };
 
+const CLOTHING_PARTS = [
+  {key:"torso",label:"Torso"},
+  {key:"vest",label:"Weste"},
+  {key:"pants",label:"Hose"},
+  {key:"shoes",label:"Schuhe"},
+  {key:"tshirt",label:"T-Shirt"}
+];
+const CATALOG_SPRITE_CHUNKS = ["__SPRITE_CHUNKS__"];
+const CATALOG_SPRITE_SRC = CATALOG_SPRITE_CHUNKS.filter(function(x){return x !== "__SPRITE_CHUNKS__";}).join("");
+const DOC_CATALOG_META = {"torso":[{"id":570,"description":"Hochzeitskleid 7 Varianten: Blau-Rosa, Lila-Türkis, Orange-Rot, Rot-Orange, schwarz-Lila, Weiß-Grau, Schwarz-weiß, Leichtes Orange (Belle,Schöne und das Biest)","spriteIndex":0}],"vest":[{"id":105,"description":"Einteiler Armfrei","spriteIndex":1},{"id":113,"description":"Seiden Outfit (Schleife)","spriteIndex":2},{"id":117,"description":"Armfreier Jumpsuit","spriteIndex":3},{"id":119,"description":"Dessou","spriteIndex":4},{"id":125,"description":"Langes Schulterfreies Kleid","spriteIndex":5},{"id":131,"description":"Langes Schulterfreies Kleid","spriteIndex":6},{"id":153,"description":"Bauchnabel Piercing","spriteIndex":7},{"id":156,"description":"Stulpen","spriteIndex":8},{"id":160,"description":"Herz Handtasche","spriteIndex":9},{"id":211,"description":"Bauchfreie College Jacke","spriteIndex":10}],"shoes":[{"id":2,"description":"Winter Boots","spriteIndex":11},{"id":3,"description":"Sneaker","spriteIndex":12},{"id":6,"description":"High Heels","spriteIndex":13},{"id":7,"description":"Stiefel mit Absatz","spriteIndex":14},{"id":10,"description":"Sport Schuhe","spriteIndex":15},{"id":11,"description":"Nike Jordan","spriteIndex":16},{"id":23,"description":"Absatzschuhe mit Riemen","spriteIndex":17},{"id":25,"description":"Motorrad Schuhe","spriteIndex":18},{"id":29,"description":"Anzugschuhe","spriteIndex":19},{"id":32,"description":"Nike Air Max","spriteIndex":20},{"id":35,"description":"Barfuß","spriteIndex":21},{"id":42,"description":"High Heels","spriteIndex":22},{"id":49,"description":"Chucks","spriteIndex":23},{"id":50,"description":"Chucks","spriteIndex":24},{"id":60,"description":"Freizeit Schuhe halbhoch","spriteIndex":25},{"id":77,"description":"Stiefel mit hoher Sohle","spriteIndex":26},{"id":79,"description":"Basketball Schuhe","spriteIndex":27},{"id":81,"description":"Sneaker mit leuchtsohle","spriteIndex":28},{"id":100,"description":"Motorrad Stiefel","spriteIndex":29},{"id":103,"description":"Turnschuhe","spriteIndex":30},{"id":114,"description":"Punk Stiefel","spriteIndex":31},{"id":118,"description":"Chucks nicht so hoch","spriteIndex":32},{"id":132,"description":"High Heels geschlossen","spriteIndex":33},{"id":137,"description":"Katzen Hausschuhe","spriteIndex":34},{"id":139,"description":"Schuhe mit Schleife","spriteIndex":35},{"id":143,"description":"Komische Stiefel gebunden","spriteIndex":36},{"id":148,"description":"Overknee Heels","spriteIndex":37},{"id":149,"description":"Overknee Stiefel","spriteIndex":38},{"id":150,"description":"Absatzschuhe mit Knöchel Befestigung","spriteIndex":39},{"id":151,"description":"Leuchte Schuhe","spriteIndex":40},{"id":152,"description":"Freizeit Treter","spriteIndex":41},{"id":154,"description":"Hochhackige Schuhe","spriteIndex":42},{"id":155,"description":"Chucks","spriteIndex":43},{"id":159,"description":"Sport Schuhe","spriteIndex":44},{"id":160,"description":"Nike Air Max","spriteIndex":45},{"id":162,"description":"Buffalo Schuhe","spriteIndex":46},{"id":163,"description":"Nike Air Force","spriteIndex":47},{"id":164,"description":"Nike Air Max","spriteIndex":48},{"id":165,"description":"Nike Air Force","spriteIndex":49},{"id":166,"description":"Nike Air Force","spriteIndex":50},{"id":177,"description":"Schuhe mit Stulpen","spriteIndex":51},{"id":182,"description":"Schuhe ?","spriteIndex":52},{"id":187,"description":"Nike Jordan","spriteIndex":53},{"id":188,"description":"Laufschuhe","spriteIndex":54},{"id":200,"description":"Boots","spriteIndex":55},{"id":201,"description":"Adidas Schuhe","spriteIndex":56},{"id":202,"description":"Nike Jordan","spriteIndex":57},{"id":214,"description":"Punk Stiefel mit Rose","spriteIndex":58},{"id":229,"description":"Lieblings Stiefel","spriteIndex":59},{"id":233,"description":"Bunte Schuhe","spriteIndex":60},{"id":240,"description":"Chucks","spriteIndex":61},{"id":257,"description":"Halbhohe Schuhe mit woll Socken","spriteIndex":62}],"tshirt":[{"id":138,"description":"Stoff Hose","spriteIndex":63},{"id":139,"description":"Rock mit Tasche","spriteIndex":64},{"id":245,"description":"Bauchfreies T-Shirt","spriteIndex":65},{"id":250,"description":"BH","spriteIndex":66},{"id":253,"description":"Sport BH","spriteIndex":67},{"id":256,"description":"Pulli mit schräglage mit Löcher Schwarz","spriteIndex":68},{"id":271,"description":"Bandana für die Brüste","spriteIndex":69},{"id":272,"description":"BH mit schnüren","spriteIndex":70},{"id":273,"description":"T-Shirt bauchfrei","spriteIndex":71},{"id":274,"description":"T-Shirt Bauchfrei mit Schleifen","spriteIndex":72},{"id":278,"description":"Kein BH also TOP","spriteIndex":73},{"id":285,"description":"Korsett mit Karo Muster","spriteIndex":74},{"id":289,"description":"Jeans","spriteIndex":75},{"id":320,"description":"Auch ein TOP","spriteIndex":76},{"id":321,"description":"↑","spriteIndex":77},{"id":325,"description":"Rock","spriteIndex":78},{"id":336,"description":"Jeans wo man die Unterhose bisschen sieht","spriteIndex":79},{"id":339,"description":"Langes Schulterfreies Kleid","spriteIndex":80},{"id":341,"description":"Kurze Hose leicht zerrissen","spriteIndex":81},{"id":344,"description":"Kurze Hose mit Schlangen Gürtel","spriteIndex":82},{"id":346,"description":"Kurze Hose mit Gürtel","spriteIndex":83},{"id":348,"description":"Jeans mit löchern","spriteIndex":84},{"id":352,"description":"Jogging Hose","spriteIndex":85},{"id":358,"description":"Jeans mit Perlen Gürtel","spriteIndex":86},{"id":366,"description":"Fast durchsichtiges T-Shirt mit Sticker","spriteIndex":87},{"id":369,"description":"Rock mit Kette um die Taille","spriteIndex":88},{"id":451,"description":"Leggins","spriteIndex":89},{"id":457,"description":"Cargo Hose","spriteIndex":90},{"id":466,"description":"Abgeschrägter Rock mit Goldkette","spriteIndex":91},{"id":490,"description":"Jogging Hose","spriteIndex":92},{"id":579,"description":"Korsett","spriteIndex":93},{"id":601,"description":"Kleid","spriteIndex":94},{"id":622,"description":"Kleid Träger über Kreuz","spriteIndex":95},{"id":631,"description":"Bauchfreier Zip Hoodie","spriteIndex":96}]};
+catalogs.female.torso = (catalogs.female.torso || []).concat(DOC_CATALOG_META.torso);
+catalogs.female.vest = DOC_CATALOG_META.vest.slice();
+catalogs.female.shoes = DOC_CATALOG_META.shoes.slice();
+catalogs.female.tshirt = DOC_CATALOG_META.tshirt.slice();
+Object.keys(catalogs).forEach(function(gender){
+  CLOTHING_PARTS.forEach(function(part){
+    if(!Array.isArray(catalogs[gender][part.key])) catalogs[gender][part.key]=[];
+  });
+});
+
 let activeGender = "female";
 let catalog = catalogs[activeGender];
 
-const state = {
-  torsoIndex: 0,
-  pantsIndex: 0,
-  torsoTexture: 0,
-  pantsTexture: 0
-};
+const state = {};
+CLOTHING_PARTS.forEach(function(part){
+  state[part.key+"Index"]=0;
+  state[part.key+"Texture"]=0;
+});
 
-function current(type) {
-  const list = catalog[type] || [];
-  if (!list.length) return null;
-  const idx = type === "torso" ? state.torsoIndex : state.pantsIndex;
-  return list[Math.min(Math.max(0, idx), list.length - 1)] || null;
+const catalogSpriteImage = new Image();
+const catalogSpriteCache = new Map();
+if(CATALOG_SPRITE_SRC) catalogSpriteImage.src="data:image/webp;base64,"+CATALOG_SPRITE_SRC;
+
+function current(type){
+  const list=catalog[type]||[];
+  if(!list.length) return null;
+  const idx=state[type+"Index"]||0;
+  return list[Math.min(Math.max(0,idx),list.length-1)]||null;
 }
 
-function renderType(type) {
-  const item = current(type);
-  const idx = type === "torso" ? state.torsoIndex : state.pantsIndex;
-  const list = catalog[type] || [];
-  const viewer = document.getElementById(type + "Img").closest(".viewer");
-  const textureInput = document.getElementById(type + "Texture");
+function cropSpriteItem(item){
+  if(!item||!Number.isInteger(item.spriteIndex)||!catalogSpriteImage.naturalWidth) return "";
+  if(catalogSpriteCache.has(item.spriteIndex)) return catalogSpriteCache.get(item.spriteIndex);
+  const size=100, cols=10, col=item.spriteIndex%cols, row=Math.floor(item.spriteIndex/cols);
+  const canvas=document.createElement("canvas");
+  canvas.width=size; canvas.height=size;
+  const ctx=canvas.getContext("2d");
+  ctx.drawImage(catalogSpriteImage,col*size,row*size,size,size,0,0,size,size);
+  const src=canvas.toDataURL("image/webp",0.92);
+  catalogSpriteCache.set(item.spriteIndex,src);
+  return src;
+}
 
-  if (!item) {
-    document.getElementById(type + "Img").removeAttribute("src");
-    document.getElementById(type + "Img").style.display = "none";
-    const imageBox = document.getElementById(type + "Img").parentElement;
-    let empty = imageBox.querySelector(".emptyImage");
-    if (!empty) {
-      empty = document.createElement("div");
-      empty.className = "emptyImage";
-      imageBox.appendChild(empty);
-    }
-    empty.textContent = activeGender === "male"
-      ? "Noch keine Herren-Daten hinterlegt"
-      : "Keine Daten vorhanden";
+function applyCatalogImage(type,item){
+  const img=document.getElementById(type+"Img");
+  if(item&&item.image){ img.src=item.image; return; }
+  if(!item||!Number.isInteger(item.spriteIndex)){ img.removeAttribute("src"); return; }
+  const apply=function(){
+    if(current(type)!==item) return;
+    const src=cropSpriteItem(item);
+    if(src) img.src=src;
+  };
+  if(catalogSpriteImage.complete&&catalogSpriteImage.naturalWidth) apply();
+  else catalogSpriteImage.addEventListener("load",apply,{once:true});
+}
 
-    document.getElementById(type + "Id").textContent = "—";
-    document.getElementById(type + "Desc").textContent =
-      activeGender === "male"
-        ? "Dieser Bereich ist vorbereitet. Sobald deine Männerdaten kommen, werden sie hier eingefügt."
-        : "Keine Einträge vorhanden.";
-    document.getElementById(type + "Pos").textContent = "0 von 0";
-    viewer.classList.add("noData");
-    textureInput.disabled = true;
-    return;
+function renderType(type){
+  const item=current(type), idx=state[type+"Index"]||0, list=catalog[type]||[];
+  const img=document.getElementById(type+"Img");
+  const viewer=img.closest(".viewer");
+  const textureInput=document.getElementById(type+"Texture");
+  if(!item){
+    img.removeAttribute("src"); img.style.display="none";
+    const imageBox=img.parentElement;
+    let empty=imageBox.querySelector(".emptyImage");
+    if(!empty){ empty=document.createElement("div"); empty.className="emptyImage"; imageBox.appendChild(empty); }
+    empty.textContent=activeGender==="male"?"Noch keine Herren-Daten hinterlegt":"Keine Daten vorhanden";
+    document.getElementById(type+"Id").textContent="—";
+    document.getElementById(type+"Desc").textContent=activeGender==="male"
+      ?"Dieser Bereich ist vorbereitet. Sobald deine Männerdaten kommen, werden sie hier eingefügt."
+      :"Keine Einträge vorhanden.";
+    document.getElementById(type+"Pos").textContent="0 von 0";
+    viewer.classList.add("noData"); textureInput.disabled=true; return;
   }
-
-  const imageBox = document.getElementById(type + "Img").parentElement;
-  const empty = imageBox.querySelector(".emptyImage");
-  if (empty) empty.remove();
-
-  const img = document.getElementById(type + "Img");
-  img.style.display = "block";
-  img.src = item.image;
-  document.getElementById(type + "Id").textContent = "ID " + item.id;
-  document.getElementById(type + "Desc").textContent = item.description;
-  document.getElementById(type + "Pos").textContent = (idx + 1) + " von " + list.length;
-  viewer.classList.remove("noData");
-  textureInput.disabled = false;
+  const empty=img.parentElement.querySelector(".emptyImage"); if(empty) empty.remove();
+  img.style.display="block"; applyCatalogImage(type,item);
+  document.getElementById(type+"Id").textContent="ID "+item.id;
+  document.getElementById(type+"Desc").textContent=item.description;
+  document.getElementById(type+"Pos").textContent=(idx+1)+" von "+list.length;
+  viewer.classList.remove("noData"); textureInput.disabled=false;
 }
 
-function render() {
-  renderType("torso");
-  renderType("pants");
-  document.getElementById("torsoTexture").value = state.torsoTexture;
-  document.getElementById("pantsTexture").value = state.pantsTexture;
-
-  const noData = !(catalog.torso && catalog.torso.length) && !(catalog.pants && catalog.pants.length);
-  document.getElementById("torsoPrev").disabled = !(catalog.torso && catalog.torso.length);
-  document.getElementById("torsoNext").disabled = !(catalog.torso && catalog.torso.length);
-  document.getElementById("pantsPrev").disabled = !(catalog.pants && catalog.pants.length);
-  document.getElementById("pantsNext").disabled = !(catalog.pants && catalog.pants.length);
-  document.getElementById("saveBtn").disabled = noData;
-  document.getElementById("saveNamedBtn").disabled = noData;
+function render(){
+  CLOTHING_PARTS.forEach(function(part){
+    const type=part.key, list=catalog[type]||[];
+    renderType(type);
+    document.getElementById(type+"Texture").value=state[type+"Texture"]||0;
+    document.getElementById(type+"Prev").disabled=!list.length;
+    document.getElementById(type+"Next").disabled=!list.length;
+  });
+  const noData=CLOTHING_PARTS.every(function(part){return !(catalog[part.key]||[]).length;});
+  document.getElementById("saveBtn").disabled=noData;
+  document.getElementById("saveNamedBtn").disabled=noData;
 }
 
-function move(type, delta) {
-  const list = catalog[type] || [];
-  if (!list.length) return;
-  const key = type === "torso" ? "torsoIndex" : "pantsIndex";
-  const total = list.length;
-  state[key] = (state[key] + delta + total) % total;
+function move(type,delta){
+  const list=catalog[type]||[]; if(!list.length) return;
+  const key=type+"Index";
+  state[key]=((state[key]||0)+delta+list.length)%list.length;
   renderType(type);
 }
 
-
-function switchGender(gender, announce = true) {
-  if (!catalogs[gender]) return;
-
-  activeGender = gender;
-  catalog = catalogs[activeGender];
-
-  state.torsoIndex = 0;
-  state.pantsIndex = 0;
-  state.torsoTexture = 0;
-  state.pantsTexture = 0;
-
-  document.getElementById("femaleBtn").classList.toggle("active", gender === "female");
-  document.getElementById("maleBtn").classList.toggle("active", gender === "male");
-  document.getElementById("archiveBadge").textContent =
-    (gender === "female" ? "DAMEN" : "HERREN") + " · WARDROBE";
-
-  render();
-
-  if (announce) {
-    status.textContent = gender === "male"
-      ? "Herrenbereich geöffnet. Die Struktur steht bereits – Daten folgen später."
-      : "Damenbereich geöffnet.";
-  }
+function resetSelectionState(){
+  CLOTHING_PARTS.forEach(function(part){state[part.key+"Index"]=0;state[part.key+"Texture"]=0;});
 }
-
-document.getElementById("femaleBtn").addEventListener("click", () => switchGender("female"));
-document.getElementById("maleBtn").addEventListener("click", () => switchGender("male"));
-
-document.getElementById("torsoPrev").addEventListener("click", () => move("torso",-1));
-document.getElementById("torsoNext").addEventListener("click", () => move("torso",1));
-document.getElementById("pantsPrev").addEventListener("click", () => move("pants",-1));
-document.getElementById("pantsNext").addEventListener("click", () => move("pants",1));
-
-document.getElementById("torsoTexture").addEventListener("input", e => {
-  state.torsoTexture = Math.max(0, parseInt(e.target.value || "0",10) || 0);
-});
-document.getElementById("pantsTexture").addEventListener("input", e => {
-  state.pantsTexture = Math.max(0, parseInt(e.target.value || "0",10) || 0);
+function clampSelectionState(){
+  CLOTHING_PARTS.forEach(function(part){
+    const list=catalog[part.key]||[], ik=part.key+"Index", tk=part.key+"Texture";
+    state[ik]=list.length?Math.min(Math.max(0,Number(state[ik])||0),list.length-1):0;
+    state[tk]=Math.max(0,Number(state[tk])||0);
+  });
+}
+function switchGender(gender,announce=true){
+  if(!catalogs[gender]) return;
+  activeGender=gender; catalog=catalogs[activeGender]; resetSelectionState();
+  document.getElementById("femaleBtn").classList.toggle("active",gender==="female");
+  document.getElementById("maleBtn").classList.toggle("active",gender==="male");
+  document.getElementById("archiveBadge").textContent=(gender==="female"?"DAMEN":"HERREN")+" · WARDROBE";
+  render();
+  if(announce) status.textContent=gender==="male"
+    ?"Herrenbereich geöffnet. Die Struktur steht bereits – Daten folgen später."
+    :"Damenbereich geöffnet.";
+}
+document.getElementById("femaleBtn").addEventListener("click",function(){switchGender("female");});
+document.getElementById("maleBtn").addEventListener("click",function(){switchGender("male");});
+CLOTHING_PARTS.forEach(function(part){
+  const type=part.key;
+  document.getElementById(type+"Prev").addEventListener("click",function(){move(type,-1);});
+  document.getElementById(type+"Next").addEventListener("click",function(){move(type,1);});
+  document.getElementById(type+"Texture").addEventListener("input",function(e){
+    state[type+"Texture"]=Math.max(0,parseInt(e.target.value||"0",10)||0);
+  });
 });
 
 const status = document.getElementById("status");
 
-document.getElementById("saveBtn").addEventListener("click", () => {
-  try {
-    localStorage.setItem("gtaWardrobeCatalog_" + activeGender, JSON.stringify(state));
-    createEmergencySnapshot("quick_save");
-    status.textContent = "Auswahl lokal gespeichert.";
-  } catch(e) {
-    status.textContent = "Speichern ist in diesem Browser nicht verfügbar.";
-  }
-});
-
-document.getElementById("loadBtn").addEventListener("click", () => {
-  try {
-    const raw = localStorage.getItem("gtaWardrobeCatalog_" + activeGender);
-    if(!raw) {
-      status.textContent = "Noch keine gespeicherte Auswahl gefunden.";
-      return;
-    }
-    const saved = JSON.parse(raw);
-    Object.assign(state, saved);
-    state.torsoIndex = catalog.torso.length ? Math.min(Math.max(0,state.torsoIndex||0), catalog.torso.length-1) : 0;
-    state.pantsIndex = catalog.pants.length ? Math.min(Math.max(0,state.pantsIndex||0), catalog.pants.length-1) : 0;
-    render();
-    createEmergencySnapshot("quick_load");
-    status.textContent = "Gespeicherte Auswahl geladen.";
-  } catch(e) {
-    status.textContent = "Gespeicherte Auswahl konnte nicht geladen werden.";
-  }
-});
-
-document.getElementById("resetBtn").addEventListener("click", () => {
-  state.torsoIndex = 0;
-  state.pantsIndex = 0;
-  state.torsoTexture = 0;
-  state.pantsTexture = 0;
-  render();
-  status.textContent = "Auswahl zurückgesetzt.";
+document.getElementById("saveBtn").addEventListener("click",()=>{try{
+  localStorage.setItem("gtaWardrobeCatalog_"+activeGender,JSON.stringify(state));
+  createEmergencySnapshot("quick_save"); status.textContent="Auswahl lokal gespeichert.";
+}catch(e){status.textContent="Speichern ist in diesem Browser nicht verfügbar.";}});
+document.getElementById("loadBtn").addEventListener("click",()=>{try{
+  const raw=localStorage.getItem("gtaWardrobeCatalog_"+activeGender);
+  if(!raw){status.textContent="Noch keine gespeicherte Auswahl gefunden.";return;}
+  Object.assign(state,JSON.parse(raw)); clampSelectionState(); render();
+  createEmergencySnapshot("quick_load"); status.textContent="Gespeicherte Auswahl geladen.";
+}catch(e){status.textContent="Gespeicherte Auswahl konnte nicht geladen werden.";}});
+document.getElementById("resetBtn").addEventListener("click",()=>{
+  resetSelectionState(); render(); status.textContent="Auswahl zurückgesetzt.";
 });
 
 
