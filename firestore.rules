@@ -18,7 +18,7 @@ service cloud.firestore {
       return part is map
         && part.keys().hasAll(['id', 'description', 'texture'])
         && part.keys().hasOnly(['id', 'description', 'texture'])
-        && (part.id is int || part.id is string)
+        && (part.id is int || (part.id is string && part.id.size() > 0 && part.id.size() <= 120))
         && part.description is string
         && part.description.size() <= 220
         && part.texture is int
@@ -32,6 +32,8 @@ service cloud.firestore {
         && outfit.name.size() <= 60
         && outfit.gender in ['female', 'male']
         && outfit.savedAt is string
+        && outfit.savedAt.size() > 0
+        && outfit.savedAt.size() <= 80
         && outfit.torsoIndex is int
         && outfit.torsoIndex >= 0
         && outfit.pantsIndex is int
