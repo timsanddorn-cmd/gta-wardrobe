@@ -2070,6 +2070,12 @@ window.WardrobeBridge = {
   document.querySelectorAll(".cloudModalWrap").forEach(function(wrap) {
     wrap.addEventListener("click", function(e){ if (e.target === wrap) closeModal(wrap.id); });
   });
+  document.addEventListener("keydown", function(e) {
+    if (e.key !== "Escape") return;
+    const openModals = document.querySelectorAll(".cloudModalWrap.open");
+    const topModal = openModals[openModals.length - 1];
+    if (topModal) closeModal(topModal.id);
+  });
 
   function lockApp(message) {
     document.body.classList.add("auth-locked");
@@ -2392,7 +2398,6 @@ window.WardrobeBridge = {
     const duplicate = sentSuggestions.some(function(item) {
       return item.status === "pending"
         && item.toUid === toUid
-        && String(item.message || "").trim() === message
         && outfitFingerprint(item.outfit) === targetFingerprint;
     });
     if (duplicate) {
