@@ -2715,6 +2715,9 @@ window.WardrobeBridge = {
   cloudTabBody.addEventListener("click", async function(e) {
     const actionBtn = e.target.closest("[data-action]");
     if (actionBtn) {
+      const actionSession = captureSession();
+      if (!actionSession) return;
+
       const outfit = findOutfitByKey(actionBtn.dataset.key);
       if (!outfit) return;
       const action = actionBtn.dataset.action;
@@ -2727,25 +2730,30 @@ window.WardrobeBridge = {
           const name = prompt("Neuer Name für den Look:",outfit.name || "");
           if (name && name.trim()) await changeOwnOutfit(outfit,{name:name.trim().slice(0,60)},"Look wurde umbenannt.");
         } else if (action === "delete") {
-          if (!currentProfile || outfit._ownerUid !== currentProfile.uid) {
+          if (outfit._ownerUid !== actionSession.uid) {
             bridge.message("Fremde Looks können nicht gelöscht werden.");
             return;
           }
           if (confirm('Look "' + (outfit.name || "Unbenannt") + '" wirklich löschen?')) {
-            await deleteDoc(doc(db,"users",currentProfile.uid,"outfits",outfit._docId));
-            await refreshCloud(false);
-            bridge.message("Look wurde gelöscht.");
+            if (!sessionIsCurrent(actionSession)) return;
+            await deleteDoc(doc(db,"users",actionSession.uid,"outfits",outfit._docId));
+            if (!sessionIsCurrent(actionSession)) return;
+            await refreshCloud(false,actionSession.revision);
+            if (sessionIsCurrent(actionSession)) bridge.message("Look wurde gelöscht.");
           }
         }
       } catch (err) {
         console.error(err);
-        bridge.message("Aktion konnte nicht ausgeführt werden.");
+        if (sessionIsCurrent(actionSession)) bridge.message("Aktion konnte nicht ausgeführt werden.");
       }
       return;
     }
 
     const suggestionBtn = e.target.closest("[data-suggestion-action]");
     if (suggestionBtn) {
+      const suggestionSession = captureSession();
+      if (!suggestionSession) return;
+
       try {
         await handleSuggestionAction(
           suggestionBtn.dataset.suggestionAction,
@@ -2754,7 +2762,7 @@ window.WardrobeBridge = {
         );
       } catch (err) {
         console.error(err);
-        bridge.message("Vorschlag konnte nicht verarbeitet werden.");
+        if (sessionIsCurrent(suggestionSession)) bridge.message("Vorschlag konnte nicht verarbeitet werden.");
       }
     }
   });
