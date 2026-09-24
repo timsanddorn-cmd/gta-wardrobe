@@ -181,8 +181,8 @@
       <div class="cloudHero">
         <div>
           <div class="cloudEyebrow">Gemeinsame Wardrobe</div>
-          <h3>Deine Looks. Eure Ideen.</h3>
-          <p>Speichere deine Outfits online, sieh die Looks der anderen an und schickt euch gegenseitig Vorschläge. Fremde Looks bleiben immer schreibgeschützt.</p>
+          <h3>Deine Outfits. Eure Ideen.</h3>
+          <p>Speichere deine Outfits online, sieh die Outfits der anderen an und schickt euch gegenseitig Vorschläge. Fremde Outfits bleiben immer schreibgeschützt.</p>
         </div>
         <div class="cloudSummary" id="cloudSummary">Cloud wird nach der Anmeldung geladen …</div>
       </div>
@@ -192,42 +192,85 @@
         <button class="cloudBtn primary" type="button" id="cloudSaveBtn">LOOK SPEICHERN</button>
       </div>
 
-      <div class="cloudTabs" role="tablist" aria-label="Outfit-Bereiche">
-        <button class="cloudTab active" type="button" data-cloud-tab="mine">MEINE LOOKS</button>
-        <button class="cloudTab" type="button" data-cloud-tab="others">LOOKS DER ANDEREN</button>
-        <button class="cloudTab" type="button" data-cloud-tab="incoming">FÜR MICH</button>
-        <button class="cloudTab" type="button" data-cloud-tab="sent">VON MIR</button>
-        <button class="cloudTab" type="button" data-cloud-tab="archive">ARCHIV</button>
+      <div class="cloudNavigation" aria-label="Cloud-Bereiche">
+        <section class="cloudNavGroup" aria-label="Outfits">
+          <div class="cloudNavHead">
+            <div>
+              <div class="cloudNavLabel">OUTFITS</div>
+              <div class="cloudNavHint">Deine aktive Sammlung, freigegebene Outfits und dein Archiv.</div>
+            </div>
+          </div>
+          <div class="cloudTabs" role="tablist" aria-label="Outfit-Ansichten">
+            <button class="cloudTab active" type="button" data-cloud-tab="mine">MEINE OUTFITS</button>
+            <button class="cloudTab" type="button" data-cloud-tab="others">OUTFITS DER ANDEREN</button>
+            <button class="cloudTab" type="button" data-cloud-tab="archive">ARCHIV</button>
+          </div>
+        </section>
+
+        <section class="cloudNavGroup" aria-label="Vorschläge">
+          <div class="cloudNavHead">
+            <div>
+              <div class="cloudNavLabel">VORSCHLÄGE</div>
+              <div class="cloudNavHint">Empfangene Vorschläge und die von dir verschickten Outfits.</div>
+            </div>
+          </div>
+          <div class="cloudTabs" role="tablist" aria-label="Vorschlags-Ansichten">
+            <button class="cloudTab" type="button" data-cloud-tab="incoming">FÜR MICH</button>
+            <button class="cloudTab" type="button" data-cloud-tab="sent">VON MIR</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="cloudContentBar">
+        <div>
+          <div class="cloudEyebrow">Aktive Ansicht</div>
+          <p>Wähle oben einen Bereich. Aktionen bleiben direkt am jeweiligen Outfit.</p>
+        </div>
       </div>
 
       <div class="cloudTabBody" id="cloudTabBody">
-        <div class="cloudEmpty">Nach der Anmeldung werden deine Cloud-Looks geladen.</div>
+        <div class="cloudEmpty">Nach der Anmeldung werden deine Cloud-Outfits geladen.</div>
       </div>
 
-      <section class="cloudTransfer">
-        <h4>Archiv &amp; Austausch</h4>
-        <p>Exportieren erstellt eine JSON-Datei mit deinen Cloud-Looks. Importieren fügt gesicherte Looks deinem eigenen Konto hinzu. Andere Benutzer werden dadurch nie verändert.</p>
-        <div class="cloudTransferRow">
-          <button class="cloudBtn" type="button" id="cloudRefreshBtn">AKTUALISIEREN</button>
-          <button class="cloudBtn" type="button" id="cloudExportBtn">MEINE LOOKS EXPORTIEREN</button>
-          <label class="cloudBtn" for="cloudImportFile">LOOKS IMPORTIEREN</label>
-          <input id="cloudImportFile" type="file" accept="application/json,.json">
+      <section class="cloudTools">
+        <div class="cloudToolsHead">
+          <div class="cloudEyebrow">Werkzeuge</div>
+          <h4>Austausch &amp; Sicherung</h4>
+          <p>Alles, was du nicht für die tägliche Outfit-Auswahl brauchst, ist hier gebündelt.</p>
         </div>
-        <div class="cloudMigration" id="cloudMigration">Prüfe, ob auf diesem Gerät ältere lokale Looks vorhanden sind …</div>
-      </section>
 
-      <details class="cloudAdvanced">
-        <summary>🔒 Erweiterte Datensicherung öffnen</summary>
-        <div class="cloudAdvancedBody">
-          <p>Diese Funktionen brauchst du im normalen Alltag nicht. Eine vollständige Sicherung enthält deine Cloud-Looks und persönliche Wardrobe-Metadaten dieses Kontos.</p>
-          <div class="cloudAdvancedGrid">
-            <button class="cloudBtn" type="button" id="cloudFullBackupBtn">VOLLSTÄNDIGE SICHERUNG ERSTELLEN</button>
-            <label class="cloudBtn danger" for="cloudRestoreFile">SICHERUNG WIEDERHERSTELLEN</label>
-            <input id="cloudRestoreFile" type="file" accept="application/json,.json" hidden>
-          </div>
-          <div class="cloudNotice">Eine Wiederherstellung startet niemals sofort: Nach Auswahl der Datei musst du zusätzlich das Wort WIEDERHERSTELLEN bestätigen.</div>
+        <div class="cloudToolsGrid">
+          <section class="cloudToolPanel cloudTransfer">
+            <div class="cloudToolTitle">Import &amp; Austausch</div>
+            <p>Aktualisiere die Cloud, exportiere deine Outfits oder übernimm eine vorhandene JSON-Sicherung in dein eigenes Konto.</p>
+            <div class="cloudTransferRow">
+              <button class="cloudBtn" type="button" id="cloudRefreshBtn">AKTUALISIEREN</button>
+              <button class="cloudBtn" type="button" id="cloudExportBtn">MEINE OUTFITS EXPORTIEREN</button>
+              <label class="cloudBtn" for="cloudImportFile">OUTFITS IMPORTIEREN</label>
+              <input id="cloudImportFile" type="file" accept="application/json,.json">
+            </div>
+            <div class="cloudMigration" id="cloudMigration">Prüfe, ob auf diesem Gerät ältere lokale Looks vorhanden sind …</div>
+          </section>
+
+          <details class="cloudToolPanel cloudAdvanced">
+            <summary>
+              <span>
+                <span class="cloudToolTitle">Sicherung &amp; Wiederherstellung</span>
+                <span class="cloudToolSummaryHint">Nur bei Backup, Gerätewechsel oder Wiederherstellung öffnen.</span>
+              </span>
+            </summary>
+            <div class="cloudAdvancedBody">
+              <p>Eine vollständige Sicherung enthält deine Cloud-Outfits und persönliche Wardrobe-Metadaten dieses Kontos.</p>
+              <div class="cloudAdvancedGrid">
+                <button class="cloudBtn" type="button" id="cloudFullBackupBtn">VOLLSTÄNDIGE SICHERUNG ERSTELLEN</button>
+                <label class="cloudBtn danger" for="cloudRestoreFile">SICHERUNG WIEDERHERSTELLEN</label>
+                <input id="cloudRestoreFile" type="file" accept="application/json,.json" hidden>
+              </div>
+              <div class="cloudNotice">Eine Wiederherstellung startet niemals sofort: Nach Auswahl der Datei musst du zusätzlich das Wort WIEDERHERSTELLEN bestätigen.</div>
+            </div>
+          </details>
         </div>
-      </details>
+      </section>
     </section>
 
     <div class="cloudModalWrap" id="suggestModal" aria-hidden="true">
