@@ -41,7 +41,16 @@ service cloud.firestore {
         && outfit.pantsIndex >= 0
         && validGarment(outfit.torso)
         && validGarment(outfit.pants)
-        && outfit.archived is bool;
+        && outfit.archived is bool
+        && (('vest' in outfit) == ('vestIndex' in outfit))
+        && (!('vest' in outfit)
+          || (outfit.vestIndex is int && outfit.vestIndex >= 0 && validGarment(outfit.vest)))
+        && (('shoes' in outfit) == ('shoesIndex' in outfit))
+        && (!('shoes' in outfit)
+          || (outfit.shoesIndex is int && outfit.shoesIndex >= 0 && validGarment(outfit.shoes)))
+        && (('tshirt' in outfit) == ('tshirtIndex' in outfit))
+        && (!('tshirt' in outfit)
+          || (outfit.tshirtIndex is int && outfit.tshirtIndex >= 0 && validGarment(outfit.tshirt)));
     }
 
     function validOutfit(outfit) {
@@ -64,8 +73,14 @@ service cloud.firestore {
           'savedAt',
           'torsoIndex',
           'pantsIndex',
+          'vestIndex',
+          'shoesIndex',
+          'tshirtIndex',
           'torso',
+          'vest',
           'pants',
+          'shoes',
+          'tshirt',
           'archived'
         ])
         && validOutfitFields(outfit);
@@ -93,8 +108,14 @@ service cloud.firestore {
           'savedAt',
           'torsoIndex',
           'pantsIndex',
+          'vestIndex',
+          'shoesIndex',
+          'tshirtIndex',
           'torso',
+          'vest',
           'pants',
+          'shoes',
+          'tshirt',
           'archived',
           'createdAt',
           'updatedAt'

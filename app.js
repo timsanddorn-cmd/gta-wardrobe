@@ -6,34 +6,84 @@ const catalogs = {
   }
 };
 
+const WARDROBE_TYPES = Object.freeze([
+  {key:"torso", label:"Torso"},
+  {key:"vest", label:"Weste"},
+  {key:"pants", label:"Hose"},
+  {key:"shoes", label:"Schuhe"},
+  {key:"tshirt", label:"T-Shirt"}
+]);
+const REQUIRED_OUTFIT_TYPES = Object.freeze(["torso","pants"]);
+const extraCatalog = window.WARDROBE_EXTRA_CATALOG || {};
+
+function mergeCatalogCategory(key) {
+  const existing = Array.isArray(catalogs.female[key]) ? catalogs.female[key] : [];
+  const incoming = Array.isArray(extraCatalog[key]) ? extraCatalog[key] : [];
+  const byId = new Map();
+
+  existing.forEach(function(item) {
+    if (item && item.id != null) byId.set(String(item.id), item);
+  });
+  incoming.forEach(function(item) {
+    if (item && item.id != null) byId.set(String(item.id), item);
+  });
+
+  const merged = Array.from(byId.values());
+  const order = extraCatalog.orders && Array.isArray(extraCatalog.orders[key])
+    ? extraCatalog.orders[key]
+    : [];
+  if (order.length) {
+    const positions = new Map(order.map(function(id,index){ return [String(id),index]; }));
+    merged.sort(function(a,b) {
+      const ai = positions.has(String(a.id)) ? positions.get(String(a.id)) : Number.MAX_SAFE_INTEGER;
+      const bi = positions.has(String(b.id)) ? positions.get(String(b.id)) : Number.MAX_SAFE_INTEGER;
+      return ai - bi;
+    });
+  }
+
+  catalogs.female[key] = merged;
+  if (!Array.isArray(catalogs.male[key])) catalogs.male[key] = [];
+}
+
+WARDROBE_TYPES.forEach(function(type){ mergeCatalogCategory(type.key); });
+delete window.WARDROBE_EXTRA_CATALOG;
+
 let activeGender = "female";
 let catalog = catalogs[activeGender];
 
-const state = {
-  torsoIndex: 0,
-  pantsIndex: 0,
-  torsoTexture: 0,
-  pantsTexture: 0
-};
+const state = {};
+WARDROBE_TYPES.forEach(function(type) {
+  state[type.key + "Index"] = 0;
+  state[type.key + "Texture"] = 0;
+});
+
+function indexKey(type) {
+  return type + "Index";
+}
+
+function textureKey(type) {
+  return type + "Texture";
+}
 
 function current(type) {
   const list = catalog[type] || [];
   if (!list.length) return null;
-  const idx = type === "torso" ? state.torsoIndex : state.pantsIndex;
+  const idx = state[indexKey(type)] || 0;
   return list[Math.min(Math.max(0, idx), list.length - 1)] || null;
 }
 
 function renderType(type) {
   const item = current(type);
-  const idx = type === "torso" ? state.torsoIndex : state.pantsIndex;
+  const idx = state[indexKey(type)] || 0;
   const list = catalog[type] || [];
-  const viewer = document.getElementById(type + "Img").closest(".viewer");
+  const img = document.getElementById(type + "Img");
+  const viewer = img.closest(".viewer");
   const textureInput = document.getElementById(type + "Texture");
 
   if (!item) {
-    document.getElementById(type + "Img").removeAttribute("src");
-    document.getElementById(type + "Img").style.display = "none";
-    const imageBox = document.getElementById(type + "Img").parentElement;
+    img.removeAttribute("src");
+    img.style.display = "none";
+    const imageBox = img.parentElement;
     let empty = imageBox.querySelector(".emptyImage");
     if (!empty) {
       empty = document.createElement("div");
@@ -55,11 +105,10 @@ function renderType(type) {
     return;
   }
 
-  const imageBox = document.getElementById(type + "Img").parentElement;
+  const imageBox = img.parentElement;
   const empty = imageBox.querySelector(".emptyImage");
   if (empty) empty.remove();
 
-  const img = document.getElementById(type + "Img");
   img.style.display = "block";
   img.src = item.image;
   document.getElementById(type + "Id").textContent = "ID " + item.id;
@@ -70,40 +119,55 @@ function renderType(type) {
 }
 
 function render() {
-  renderType("torso");
-  renderType("pants");
-  document.getElementById("torsoTexture").value = state.torsoTexture;
-  document.getElementById("pantsTexture").value = state.pantsTexture;
+  WARDROBE_TYPES.forEach(function(type) {
+    renderType(type.key);
+    const input = document.getElementById(type.key + "Texture");
+    input.value = state[textureKey(type.key)] || 0;
+    const hasData = Boolean(catalog[type.key] && catalog[type.key].length);
+    document.getElementById(type.key + "Prev").disabled = !hasData;
+    document.getElementById(type.key + "Next").disabled = !hasData;
+  });
 
-  const noData = !(catalog.torso && catalog.torso.length) && !(catalog.pants && catalog.pants.length);
-  document.getElementById("torsoPrev").disabled = !(catalog.torso && catalog.torso.length);
-  document.getElementById("torsoNext").disabled = !(catalog.torso && catalog.torso.length);
-  document.getElementById("pantsPrev").disabled = !(catalog.pants && catalog.pants.length);
-  document.getElementById("pantsNext").disabled = !(catalog.pants && catalog.pants.length);
-  document.getElementById("saveBtn").disabled = noData;
-  document.getElementById("saveNamedBtn").disabled = noData;
+  const canSave = REQUIRED_OUTFIT_TYPES.every(function(type) {
+    return Boolean(catalog[type] && catalog[type].length);
+  });
+  document.getElementById("saveBtn").disabled = !canSave;
+  document.getElementById("saveNamedBtn").disabled = !canSave;
 }
 
 function move(type, delta) {
   const list = catalog[type] || [];
   if (!list.length) return;
-  const key = type === "torso" ? "torsoIndex" : "pantsIndex";
-  const total = list.length;
-  state[key] = (state[key] + delta + total) % total;
+  const key = indexKey(type);
+  state[key] = ((state[key] || 0) + delta + list.length) % list.length;
   renderType(type);
 }
 
+function resetSelectionState() {
+  WARDROBE_TYPES.forEach(function(type) {
+    state[indexKey(type.key)] = 0;
+    state[textureKey(type.key)] = 0;
+  });
+}
+
+function clampSelectionState() {
+  WARDROBE_TYPES.forEach(function(type) {
+    const list = catalog[type.key] || [];
+    const idxKey = indexKey(type.key);
+    const texKey = textureKey(type.key);
+    state[idxKey] = list.length
+      ? Math.min(Math.max(0, Number(state[idxKey]) || 0), list.length - 1)
+      : 0;
+    state[texKey] = Math.max(0, Number(state[texKey]) || 0);
+  });
+}
 
 function switchGender(gender, announce = true) {
   if (!catalogs[gender]) return;
 
   activeGender = gender;
   catalog = catalogs[activeGender];
-
-  state.torsoIndex = 0;
-  state.pantsIndex = 0;
-  state.torsoTexture = 0;
-  state.pantsTexture = 0;
+  resetSelectionState();
 
   document.getElementById("femaleBtn").classList.toggle("active", gender === "female");
   document.getElementById("maleBtn").classList.toggle("active", gender === "male");
@@ -119,24 +183,20 @@ function switchGender(gender, announce = true) {
   }
 }
 
-document.getElementById("femaleBtn").addEventListener("click", () => switchGender("female"));
-document.getElementById("maleBtn").addEventListener("click", () => switchGender("male"));
-
-document.getElementById("torsoPrev").addEventListener("click", () => move("torso",-1));
-document.getElementById("torsoNext").addEventListener("click", () => move("torso",1));
-document.getElementById("pantsPrev").addEventListener("click", () => move("pants",-1));
-document.getElementById("pantsNext").addEventListener("click", () => move("pants",1));
-
-document.getElementById("torsoTexture").addEventListener("input", e => {
-  state.torsoTexture = Math.max(0, parseInt(e.target.value || "0",10) || 0);
-});
-document.getElementById("pantsTexture").addEventListener("input", e => {
-  state.pantsTexture = Math.max(0, parseInt(e.target.value || "0",10) || 0);
-});
-
 const status = document.getElementById("status");
 
-document.getElementById("saveBtn").addEventListener("click", () => {
+document.getElementById("femaleBtn").addEventListener("click", function(){ switchGender("female"); });
+document.getElementById("maleBtn").addEventListener("click", function(){ switchGender("male"); });
+
+WARDROBE_TYPES.forEach(function(type) {
+  document.getElementById(type.key + "Prev").addEventListener("click", function(){ move(type.key,-1); });
+  document.getElementById(type.key + "Next").addEventListener("click", function(){ move(type.key,1); });
+  document.getElementById(type.key + "Texture").addEventListener("input", function(e) {
+    state[textureKey(type.key)] = Math.max(0, parseInt(e.target.value || "0",10) || 0);
+  });
+});
+
+document.getElementById("saveBtn").addEventListener("click", function() {
   try {
     localStorage.setItem("gtaWardrobeCatalog_" + activeGender, JSON.stringify(state));
     createEmergencySnapshot("quick_save");
@@ -146,7 +206,7 @@ document.getElementById("saveBtn").addEventListener("click", () => {
   }
 });
 
-document.getElementById("loadBtn").addEventListener("click", () => {
+document.getElementById("loadBtn").addEventListener("click", function() {
   try {
     const raw = localStorage.getItem("gtaWardrobeCatalog_" + activeGender);
     if(!raw) {
@@ -155,8 +215,7 @@ document.getElementById("loadBtn").addEventListener("click", () => {
     }
     const saved = JSON.parse(raw);
     Object.assign(state, saved);
-    state.torsoIndex = catalog.torso.length ? Math.min(Math.max(0,state.torsoIndex||0), catalog.torso.length-1) : 0;
-    state.pantsIndex = catalog.pants.length ? Math.min(Math.max(0,state.pantsIndex||0), catalog.pants.length-1) : 0;
+    clampSelectionState();
     render();
     createEmergencySnapshot("quick_load");
     status.textContent = "Gespeicherte Auswahl geladen.";
@@ -165,11 +224,8 @@ document.getElementById("loadBtn").addEventListener("click", () => {
   }
 });
 
-document.getElementById("resetBtn").addEventListener("click", () => {
-  state.torsoIndex = 0;
-  state.pantsIndex = 0;
-  state.torsoTexture = 0;
-  state.pantsTexture = 0;
+document.getElementById("resetBtn").addEventListener("click", function() {
+  resetSelectionState();
   render();
   status.textContent = "Auswahl zurückgesetzt.";
 });
@@ -196,31 +252,79 @@ function currentOutfitSnapshot(name) {
   const pants = current("pants");
   if (!torso || !pants) return null;
 
-  return {
+  const snapshot = {
     id: Date.now(),
     gender: activeGender,
     name: name,
-    savedAt: new Date().toISOString(),
-    torsoIndex: state.torsoIndex,
-    pantsIndex: state.pantsIndex,
-    torso: {
-      id: torso.id,
-      description: torso.description,
-      texture: state.torsoTexture
-    },
-    pants: {
-      id: pants.id,
-      description: pants.description,
-      texture: state.pantsTexture
-    }
+    savedAt: new Date().toISOString()
   };
+
+  WARDROBE_TYPES.forEach(function(type) {
+    const part = current(type.key);
+    if (!part) return;
+    snapshot[indexKey(type.key)] = state[indexKey(type.key)] || 0;
+    snapshot[type.key] = {
+      id: part.id,
+      description: part.description,
+      texture: state[textureKey(type.key)] || 0
+    };
+  });
+
+  return snapshot;
 }
 
 function icText(outfit) {
-  return [
-    "Torso: ID " + outfit.torso.id + " | Variante " + outfit.torso.texture,
-    "Hose: ID " + outfit.pants.id + " | Variante " + outfit.pants.texture
-  ].join("\n");
+  return WARDROBE_TYPES
+    .filter(function(type){ return outfit && outfit[type.key]; })
+    .map(function(type) {
+      return type.label + ": ID " + outfit[type.key].id +
+        " | Variante " + (Number(outfit[type.key].texture) || 0);
+    })
+    .join("\n");
+}
+
+function outfitPartsHtml(outfit) {
+  return WARDROBE_TYPES
+    .filter(function(type){ return outfit && outfit[type.key]; })
+    .map(function(type) {
+      const part = outfit[type.key];
+      return escapeHtml(type.label) + " ID " + escapeHtml(part.id) +
+        (part.description ? " · " + escapeHtml(part.description) : "");
+    })
+    .join("<br>");
+}
+
+function applyOutfitSelection(outfit) {
+  if (!outfit || !outfit.torso || !outfit.pants) return false;
+
+  const targetGender = outfit.gender === "male" ? "male" : "female";
+  switchGender(targetGender, false);
+
+  WARDROBE_TYPES.forEach(function(type) {
+    const list = catalog[type.key] || [];
+    const part = outfit[type.key];
+    const idxKey = indexKey(type.key);
+    const texKey = textureKey(type.key);
+
+    if (!part || !list.length) {
+      state[idxKey] = 0;
+      state[texKey] = 0;
+      return;
+    }
+
+    let idx = list.findIndex(function(item){ return String(item.id) === String(part.id); });
+    if (idx < 0) {
+      idx = Math.min(
+        Math.max(0, Number(outfit[idxKey]) || 0),
+        Math.max(0, list.length - 1)
+      );
+    }
+    state[idxKey] = idx;
+    state[texKey] = Math.max(0, Number(part.texture) || 0);
+  });
+
+  render();
+  return true;
 }
 
 function escapeHtml(text) {
@@ -248,10 +352,7 @@ function renderSavedOutfits() {
       <div class="savedItemTop">
         <div>
           <div class="savedName"><span class="genderTag">${(outfit.gender || "female") === "male" ? "HERREN" : "DAMEN"}</span>${escapeHtml(outfit.name || "Unbenanntes Outfit")}</div>
-          <div class="savedMeta">
-            Torso ID ${escapeHtml(outfit.torso.id)} · ${escapeHtml(outfit.torso.description || "")}<br>
-            Hose ID ${escapeHtml(outfit.pants.id)} · ${escapeHtml(outfit.pants.description || "")}
-          </div>
+          <div class="savedMeta">${outfitPartsHtml(outfit)}</div>
         </div>
         <div class="savedButtons">
           <button type="button" data-load="${outfit.id}">Laden</button>
@@ -293,24 +394,12 @@ function saveNamedOutfit() {
 }
 
 function loadNamedOutfit(id) {
-  const outfit = readSavedOutfits().find(x => x.id === id);
+  const outfit = readSavedOutfits().find(function(x){ return x.id === id; });
   if (!outfit) return;
-
-  const targetGender = outfit.gender || "female";
-  switchGender(targetGender, false);
-
-  let torsoIndex = catalog.torso.findIndex(x => String(x.id) === String(outfit.torso.id));
-  let pantsIndex = catalog.pants.findIndex(x => String(x.id) === String(outfit.pants.id));
-
-  if (torsoIndex < 0) torsoIndex = Math.min(Math.max(0, outfit.torsoIndex || 0), Math.max(0, catalog.torso.length - 1));
-  if (pantsIndex < 0) pantsIndex = Math.min(Math.max(0, outfit.pantsIndex || 0), Math.max(0, catalog.pants.length - 1));
-
-  state.torsoIndex = torsoIndex;
-  state.pantsIndex = pantsIndex;
-  state.torsoTexture = Math.max(0, Number(outfit.torso.texture) || 0);
-  state.pantsTexture = Math.max(0, Number(outfit.pants.texture) || 0);
-
-  render();
+  if (!applyOutfitSelection(outfit)) {
+    status.textContent = "Dieses gespeicherte Outfit ist unvollständig.";
+    return;
+  }
   status.textContent = 'Look "' + (outfit.name || "Unbenannt") + '" geladen.';
 }
 
@@ -477,16 +566,13 @@ function applyBackup(data, sourceLabel = "Sicherung") {
   switchGender(restoredGender, false);
 
   if (data.state && typeof data.state === "object") {
-    state.torsoIndex = Math.max(0, Number(data.state.torsoIndex) || 0);
-    state.pantsIndex = Math.max(0, Number(data.state.pantsIndex) || 0);
-    state.torsoTexture = Math.max(0, Number(data.state.torsoTexture) || 0);
-    state.pantsTexture = Math.max(0, Number(data.state.pantsTexture) || 0);
+    WARDROBE_TYPES.forEach(function(type) {
+      state[indexKey(type.key)] = Math.max(0, Number(data.state[indexKey(type.key)]) || 0);
+      state[textureKey(type.key)] = Math.max(0, Number(data.state[textureKey(type.key)]) || 0);
+    });
   }
 
-  state.torsoIndex = catalog.torso.length
-    ? Math.min(state.torsoIndex, catalog.torso.length - 1) : 0;
-  state.pantsIndex = catalog.pants.length
-    ? Math.min(state.pantsIndex, catalog.pants.length - 1) : 0;
+  clampSelectionState();
 
   render();
   renderSavedOutfits();
@@ -585,21 +671,7 @@ window.WardrobeBridge = {
     return readSavedOutfits();
   },
   load: function(outfit) {
-    if (!outfit || !outfit.torso || !outfit.pants) return false;
-    const targetGender = outfit.gender === "male" ? "male" : "female";
-    switchGender(targetGender, false);
-
-    let torsoIndex = catalog.torso.findIndex(function(x){ return String(x.id) === String(outfit.torso.id); });
-    let pantsIndex = catalog.pants.findIndex(function(x){ return String(x.id) === String(outfit.pants.id); });
-
-    if (torsoIndex < 0) torsoIndex = Math.min(Math.max(0, Number(outfit.torsoIndex) || 0), Math.max(0, catalog.torso.length - 1));
-    if (pantsIndex < 0) pantsIndex = Math.min(Math.max(0, Number(outfit.pantsIndex) || 0), Math.max(0, catalog.pants.length - 1));
-
-    state.torsoIndex = torsoIndex;
-    state.pantsIndex = pantsIndex;
-    state.torsoTexture = Math.max(0, Number(outfit.torso.texture) || 0);
-    state.pantsTexture = Math.max(0, Number(outfit.pants.texture) || 0);
-    render();
+    if (!applyOutfitSelection(outfit)) return false;
     status.textContent = 'Look "' + (outfit.name || "Unbenannt") + '" als Vorlage geladen.';
     window.scrollTo({top: document.querySelector(".catalog").offsetTop, behavior:"smooth"});
     return true;
@@ -840,7 +912,7 @@ const firebaseConfig = {
       ? raw.savedAt.trim().slice(0,80)
       : new Date().toISOString();
 
-    return {
+    const clean = {
       schemaVersion: 1,
       name: name,
       gender: raw.gender === "male" ? "male" : "female",
@@ -859,6 +931,19 @@ const firebaseConfig = {
       },
       archived: Boolean(raw.archived)
     };
+
+    ["vest","shoes","tshirt"].forEach(function(type) {
+      const part = raw[type];
+      if (!part || typeof part !== "object" || Array.isArray(part) || part.id == null) return;
+      clean[type + "Index"] = safeNonNegativeInt(raw[type + "Index"]);
+      clean[type] = {
+        id: safeGarmentId(part.id),
+        description: String(part.description || "").slice(0,220),
+        texture: safeNonNegativeInt(part.texture)
+      };
+    });
+
+    return clean;
   }
 
   function validIncomingGarment(part) {
@@ -887,20 +972,32 @@ const firebaseConfig = {
     if (typeof raw.torsoIndex !== "number" || !Number.isFinite(raw.torsoIndex) || !Number.isInteger(raw.torsoIndex) || raw.torsoIndex < 0) return false;
     if (typeof raw.pantsIndex !== "number" || !Number.isFinite(raw.pantsIndex) || !Number.isInteger(raw.pantsIndex) || raw.pantsIndex < 0) return false;
     if (raw.archived != null && typeof raw.archived !== "boolean") return false;
-    return validIncomingGarment(raw.torso) && validIncomingGarment(raw.pants);
+    if (!validIncomingGarment(raw.torso) || !validIncomingGarment(raw.pants)) return false;
+
+    return ["vest","shoes","tshirt"].every(function(type) {
+      const hasPart = raw[type] != null;
+      const hasIndex = raw[type + "Index"] != null;
+      if (hasPart !== hasIndex) return false;
+      if (!hasPart) return true;
+      const index = raw[type + "Index"];
+      return typeof index === "number"
+        && Number.isFinite(index)
+        && Number.isInteger(index)
+        && index >= 0
+        && validIncomingGarment(raw[type]);
+    });
   }
 
   function outfitFingerprint(raw) {
     const outfit = sanitizeOutfit(raw, raw && raw.name);
     if (!outfit) return "";
-    return JSON.stringify([
-      outfit.name,
-      outfit.gender,
-      String(outfit.torso.id),
-      outfit.torso.texture,
-      String(outfit.pants.id),
-      outfit.pants.texture
-    ]);
+    const parts = [outfit.name, outfit.gender];
+    WARDROBE_TYPES.forEach(function(type) {
+      const part = outfit[type.key];
+      parts.push(part ? String(part.id) : null);
+      parts.push(part ? part.texture : null);
+    });
+    return JSON.stringify(parts);
   }
 
   function ownerName(uid) {
@@ -1009,8 +1106,13 @@ const firebaseConfig = {
   }
 
   function outfitMeta(outfit) {
-    return "Torso ID " + esc(outfit.torso && outfit.torso.id) + " · Variante " + esc(outfit.torso && outfit.torso.texture) +
-      "<br>Hose ID " + esc(outfit.pants && outfit.pants.id) + " · Variante " + esc(outfit.pants && outfit.pants.texture);
+    const lines = WARDROBE_TYPES
+      .filter(function(type){ return outfit && outfit[type.key]; })
+      .map(function(type) {
+        const part = outfit[type.key];
+        return esc(type.label) + " ID " + esc(part.id) + " · Variante " + esc(part.texture);
+      });
+    return lines.join("<br>");
   }
 
   function outfitCard(outfit, mode) {
