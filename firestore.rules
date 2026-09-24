@@ -104,12 +104,15 @@ service cloud.firestore {
     }
 
     match /allowedUsers/{uid} {
-      allow read: if approved();
+      allow get: if signedIn()
+        && (request.auth.uid == uid || approved());
+      allow list: if approved();
       allow write: if false;
     }
 
     match /users/{uid}/outfits/{outfitId} {
-      allow read: if approved();
+      allow read: if approved()
+        && (request.auth.uid == uid || resource.data.archived == false);
       allow create, update: if approved()
         && request.auth.uid == uid
         && validStoredOutfit(request.resource.data);

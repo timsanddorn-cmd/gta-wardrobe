@@ -2085,9 +2085,12 @@ window.WardrobeBridge = {
     }).sort(function(a,b){ return a.name.localeCompare(b.name,"de"); });
   }
 
-  async function fetchAllOutfits(users) {
+  async function fetchVisibleOutfits(users, viewerUid) {
     const groups = await Promise.all(users.map(async function(user) {
-      const snap = await getDocs(collection(db, "users", user.uid, "outfits"));
+      const ref = collection(db, "users", user.uid, "outfits");
+      const snap = user.uid === viewerUid
+        ? await getDocs(ref)
+        : await getDocs(query(ref, where("archived","==",false)));
       return snap.docs.map(function(d) {
         return Object.assign({}, d.data(), {_docId:d.id,_ownerUid:user.uid,_ownerName:user.name});
       });
@@ -2254,7 +2257,7 @@ window.WardrobeBridge = {
 
     try {
       const users = await fetchAllowedUsers();
-      const results = await Promise.all([fetchAllOutfits(users), fetchSuggestions(uid)]);
+      const results = await Promise.all([fetchVisibleOutfits(users,uid), fetchSuggestions(uid)]);
 
       if (
         expectedRevision !== authRevision ||
@@ -2517,17 +2520,31 @@ window.WardrobeBridge = {
     URL.revokeObjectURL(url);
   }
 
-  function exportOwnLooks() {
-    const own = allOutfits.filter(function(x){ return x._ownerUid === currentProfile.uid; })
-      .map(function(x){ return sanitizeOutfit(x,x.name); }).filter(Boolean);
-    downloadJson("wardrobe-" + currentProfile.name.toLowerCase() + "-looks.json",{
-      format:"GTA_WARDROBE_CLOUD_OUTFITS",
-      version:1,
-      exportedAt:new Date().toISOString(),
-      owner:currentProfile.name,
-      outfits:own
-    });
-    bridge.message("Deine Cloud-Looks wurden exportiert.");
+  async function exportOwnLooks() {
+    const session = captureSession();
+    if (!session) return;
+
+    try {
+      const snap = await getDocs(collection(db,"users",session.uid,"outfits"));
+      if (!sessionIsCurrent(session)) return;
+
+      const own = snap.docs
+        .map(function(d){ return sanitizeOutfit(d.data(), d.data() && d.data().name); })
+        .filter(Boolean);
+
+      downloadJson("wardrobe-" + session.name.toLowerCase() + "-looks.json",{
+        format:"GTA_WARDROBE_CLOUD_OUTFITS",
+        version:1,
+        exportedAt:new Date().toISOString(),
+        ownerUid:session.uid,
+        owner:session.name,
+        outfits:own
+      });
+      if (sessionIsCurrent(session)) bridge.message("Deine aktuellen Cloud-Looks wurden exportiert.");
+    } catch (e) {
+      console.error(e);
+      if (sessionIsCurrent(session)) bridge.message("Deine Cloud-Looks konnten nicht exportiert werden.");
+    }
   }
 
   async function importLooksFile(file) {
