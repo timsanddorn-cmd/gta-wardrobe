@@ -832,17 +832,19 @@ const firebaseConfig = {
 
   function sanitizeOutfit(raw, forcedName) {
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
-    if (!raw.torso || typeof raw.torso !== "object" || Array.isArray(raw.torso)) return null;
-    if (!raw.pants || typeof raw.pants !== "object" || Array.isArray(raw.pants)) return null;
-    if (raw.torso.id == null || raw.pants.id == null) return null;
+    if (!raw.torso || !raw.pants || raw.torso.id == null || raw.pants.id == null) return null;
 
     const name = String(forcedName || raw.name || "Unbenannter Look").trim().slice(0,60) || "Unbenannter Look";
     const savedAt = typeof raw.savedAt === "string" && raw.savedAt.trim()
       ? raw.savedAt.trim().slice(0,80)
       : new Date().toISOString();
 
-    return {
-      schemaVersion: 1,
+    const hasFiveParts = ["vest","shoes","tshirt"].every(function(key) {
+      return raw[key] && typeof raw[key] === "object" && !Array.isArray(raw[key]) && raw[key].id != null;
+    });
+
+    const base = {
+      schemaVersion: hasFiveParts ? 2 : 1,
       name: name,
       gender: raw.gender === "male" ? "male" : "female",
       savedAt: savedAt,
@@ -860,16 +862,26 @@ const firebaseConfig = {
       },
       archived: Boolean(raw.archived)
     };
+
+    if (!hasFiveParts) return base;
+
+    ["vest","shoes","tshirt"].forEach(function(key) {
+      base[key + "Index"] = safeNonNegativeInt(raw[key + "Index"]);
+      base[key] = {
+        id: safeGarmentId(raw[key].id),
+        description: String(raw[key].description || "").slice(0,220),
+        texture: safeNonNegativeInt(raw[key].texture)
+      };
+    });
+    return base;
   }
 
   function validIncomingGarment(part) {
     if (!part || typeof part !== "object" || Array.isArray(part)) return false;
-
     const id = part.id;
     const validId =
       (typeof id === "number" && Number.isFinite(id) && Number.isInteger(id) && id >= 0) ||
       (typeof id === "string" && id.trim().length > 0 && id.trim().length <= 120);
-
     return validId
       && typeof part.description === "string"
       && part.description.length <= 220
@@ -879,29 +891,42 @@ const firebaseConfig = {
       && part.texture >= 0;
   }
 
+  function validIncomingIndex(value) {
+    return typeof value === "number"
+      && Number.isFinite(value)
+      && Number.isInteger(value)
+      && value >= 0;
+  }
+
   function validIncomingOutfit(raw) {
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
-    if (raw.schemaVersion != null && raw.schemaVersion !== 1) return false;
+    const version = raw.schemaVersion == null ? 1 : raw.schemaVersion;
+    if (version !== 1 && version !== 2) return false;
     if (typeof raw.name !== "string" || !raw.name.trim() || raw.name.trim().length > 60) return false;
     if (raw.gender !== "female" && raw.gender !== "male") return false;
     if (typeof raw.savedAt !== "string" || !raw.savedAt.trim() || raw.savedAt.trim().length > 80) return false;
-    if (typeof raw.torsoIndex !== "number" || !Number.isFinite(raw.torsoIndex) || !Number.isInteger(raw.torsoIndex) || raw.torsoIndex < 0) return false;
-    if (typeof raw.pantsIndex !== "number" || !Number.isFinite(raw.pantsIndex) || !Number.isInteger(raw.pantsIndex) || raw.pantsIndex < 0) return false;
+    if (!validIncomingIndex(raw.torsoIndex) || !validIncomingIndex(raw.pantsIndex)) return false;
     if (raw.archived != null && typeof raw.archived !== "boolean") return false;
-    return validIncomingGarment(raw.torso) && validIncomingGarment(raw.pants);
+    if (!validIncomingGarment(raw.torso) || !validIncomingGarment(raw.pants)) return false;
+    if (version === 1) return true;
+
+    return validIncomingIndex(raw.vestIndex)
+      && validIncomingIndex(raw.shoesIndex)
+      && validIncomingIndex(raw.tshirtIndex)
+      && validIncomingGarment(raw.vest)
+      && validIncomingGarment(raw.shoes)
+      && validIncomingGarment(raw.tshirt);
   }
 
   function outfitFingerprint(raw) {
     const outfit = sanitizeOutfit(raw, raw && raw.name);
     if (!outfit) return "";
-    return JSON.stringify([
-      outfit.name,
-      outfit.gender,
-      String(outfit.torso.id),
-      outfit.torso.texture,
-      String(outfit.pants.id),
-      outfit.pants.texture
-    ]);
+    const parts = [outfit.name,outfit.gender];
+    ["torso","vest","pants","shoes","tshirt"].forEach(function(key) {
+      if (!outfit[key]) return;
+      parts.push(key,String(outfit[key].id),outfit[key].texture);
+    });
+    return JSON.stringify(parts);
   }
 
   function ownerName(uid) {
@@ -1010,8 +1035,14 @@ const firebaseConfig = {
   }
 
   function outfitMeta(outfit) {
-    return "Torso ID " + esc(outfit.torso && outfit.torso.id) + " · Variante " + esc(outfit.torso && outfit.torso.texture) +
-      "<br>Hose ID " + esc(outfit.pants && outfit.pants.id) + " · Variante " + esc(outfit.pants && outfit.pants.texture);
+    const labels = {torso:"Torso",vest:"Weste",pants:"Hose",shoes:"Schuhe",tshirt:"T-Shirt"};
+    return ["torso","vest","pants","shoes","tshirt"]
+      .filter(function(key){ return outfit && outfit[key]; })
+      .map(function(key) {
+        const part = outfit[key];
+        return labels[key] + " ID " + esc(part.id) + " · Variante " + esc(part.texture);
+      })
+      .join("<br>");
   }
 
   function outfitCard(outfit, mode) {
