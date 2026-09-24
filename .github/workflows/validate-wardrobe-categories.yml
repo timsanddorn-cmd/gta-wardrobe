@@ -1,0 +1,98 @@
+name: Validate Wardrobe categories
+
+on:
+  push:
+    branches:
+      - feature/full-clothing-categories-20260925
+    paths:
+      - app.js
+      - index.html
+      - catalog-extra.js
+      - firestore.rules
+      - .github/workflows/validate-wardrobe-categories.yml
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/full-clothing-categories-20260925
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check catalog-extra.js
+      - name: Verify catalog payload and HTML wiring
+        shell: bash
+        run: |
+          node <<'NODE'
+          global.window = {};
+          require('./catalog-extra.js');
+          const c = window.WARDROBE_EXTRA_CATALOG;
+          const expected = {torso:1, vest:10, shoes:52, tshirt:34};
+          for (const [key,count] of Object.entries(expected)) {
+            if (!Array.isArray(c[key]) || c[key].length !== count) {
+              throw new Error(key + ' expected ' + count + ', got ' + (c[key] && c[key].length));
+            }
+            for (const item of c[key]) {
+              if (!item.image || !item.image.startsWith('data:image/jpeg;base64,')) {
+                throw new Error(key + ' contains an invalid image');
+              }
+            }
+          }
+          if (!c.orders || c.orders.torso.length !== 143 || c.orders.pants.length !== 45 ||
+              c.orders.vest.length !== 10 || c.orders.shoes.length !== 52 || c.orders.tshirt.length !== 34) {
+            throw new Error('Catalog order/count metadata is incomplete');
+          }
+          console.log('CATALOG_COUNTS_OK');
+          NODE
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          class IdParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.ids=[]
+                  self.scripts=[]
+              def handle_starttag(self, tag, attrs):
+                  a=dict(attrs)
+                  if 'id' in a: self.ids.append(a['id'])
+                  if tag == 'script' and 'src' in a: self.scripts.append(a['src'])
+
+          p=IdParser()
+          p.feed(Path('index.html').read_text(encoding='utf-8'))
+          expected=[]
+          for key in ('torso','vest','pants','shoes','tshirt'):
+              expected += [key+'Prev',key+'Img',key+'Id',key+'Desc',key+'Pos',key+'Texture',key+'Next']
+          missing=[x for x in expected if p.ids.count(x)!=1]
+          if missing:
+              raise SystemExit('Missing or duplicated selector IDs: '+', '.join(missing))
+          if p.scripts[-2:] != ['catalog-extra.js','app.js']:
+              raise SystemExit('Catalog/app script order is wrong: '+repr(p.scripts[-2:]))
+          if len(p.ids) != len(set(p.ids)):
+              raise SystemExit('Duplicate HTML id detected')
+          print('HTML_WIRING_OK')
+          PY
+      - name: Validate Firestore rules
+        run: npx --yes firebase-tools emulators:exec --only firestore --project demo-gta-wardrobe "echo FIRESTORE_RULES_OK"
+      - name: Remove one-time validation workflow
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/validate-wardrobe-categories.yml
+          rmdir .github/workflows 2>/dev/null || true
+          rmdir .github 2>/dev/null || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Remove one-time category validation workflow [skip ci]"
+          git push origin HEAD:feature/full-clothing-categories-20260925
