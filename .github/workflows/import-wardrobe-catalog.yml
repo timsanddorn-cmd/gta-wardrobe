@@ -1,0 +1,42 @@
+name: Import Wardrobe catalog
+
+on:
+  push:
+    branches:
+      - feature/full-clothing-categories-20260925
+    paths:
+      - tools/import_wardrobe_catalog.py
+      - .github/workflows/import-wardrobe-catalog.yml
+
+permissions:
+  contents: write
+
+jobs:
+  import-catalog:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/full-clothing-categories-20260925
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install image dependency
+        run: python -m pip install --disable-pip-version-check pillow
+      - name: Build catalog data
+        run: python tools/import_wardrobe_catalog.py
+      - name: Commit generated catalog and remove importer
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f tools/import_wardrobe_catalog.py .github/workflows/import-wardrobe-catalog.yml
+          rmdir tools 2>/dev/null || true
+          rmdir .github/workflows 2>/dev/null || true
+          rmdir .github 2>/dev/null || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Import complete clothing catalog [skip ci]"
+          git push origin HEAD:feature/full-clothing-categories-20260925
