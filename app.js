@@ -696,6 +696,7 @@ const firebaseConfig = {
   const gate = document.getElementById("authGate");
   const form = document.getElementById("loginForm");
   const userSelect = document.getElementById("loginUser");
+  const loginUsernameInput = document.getElementById("loginUsername");
   const passwordInput = document.getElementById("loginPassword");
   const loginButton = document.getElementById("loginButton");
   const authMessage = document.getElementById("authMessage");
@@ -704,6 +705,7 @@ const firebaseConfig = {
   const sessionUserRole = document.getElementById("sessionUserRole");
   const logoutBtn = document.getElementById("logoutBtn");
   const accountSecurityBtn = document.getElementById("accountSecurityBtn");
+  const passwordChangeUsernameInput = document.getElementById("passwordChangeUsername");
 
   const cloudSummary = document.getElementById("cloudSummary");
   const cloudTabBody = document.getElementById("cloudTabBody");
@@ -782,6 +784,13 @@ const firebaseConfig = {
     loginButton.disabled = Boolean(busy);
     loginButton.textContent = busy ? "PRÜFE ZUGRIFF …" : "ANMELDEN";
   }
+
+  function syncLoginUsernameHint() {
+    if (loginUsernameInput) loginUsernameInput.value = userSelect.value || "";
+  }
+
+  userSelect.addEventListener("change", syncLoginUsernameHint);
+  syncLoginUsernameHint();
 
   function readMigrationMarker(key) {
     if (!key) return false;
@@ -1779,6 +1788,9 @@ const firebaseConfig = {
   document.getElementById("sendSuggestionBtn").addEventListener("click", sendSuggestion);
 
   accountSecurityBtn.addEventListener("click", function() {
+    if (passwordChangeUsernameInput) {
+      passwordChangeUsernameInput.value = currentProfile && currentProfile.name ? currentProfile.name : userSelect.value;
+    }
     document.getElementById("currentPassword").value = "";
     document.getElementById("newPassword").value = "";
     document.getElementById("newPasswordRepeat").value = "";
@@ -1899,6 +1911,7 @@ const firebaseConfig = {
       }
 
       currentProfile = profile;
+      if (passwordChangeUsernameInput) passwordChangeUsernameInput.value = profile.name || userSelect.value;
       window.wardrobeUser = profile;
       unlockApp(profile);
       setLoginBusy(false);
