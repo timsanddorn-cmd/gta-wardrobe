@@ -1868,7 +1868,8 @@ window.WardrobeBridge = {
     updateDoc,
     deleteDoc,
     serverTimestamp,
-    writeBatch
+    writeBatch,
+    runTransaction
   } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -2443,8 +2444,23 @@ window.WardrobeBridge = {
     }
 
     btn.disabled = true;
-    statusBox.textContent = "Vorschlag wird gesendet …";
+    statusBox.textContent = "Vorschlag wird geprüft …";
     try {
+      const freshSent = await getDocs(query(collection(db,"suggestions"), where("fromUid","==",session.uid)));
+      if (!sessionIsCurrent(session)) return;
+
+      const freshDuplicate = freshSent.docs.some(function(d) {
+        const item = d.data() || {};
+        return item.status === "pending"
+          && item.toUid === toUid
+          && outfitFingerprint(item.outfit) === targetFingerprint;
+      });
+      if (freshDuplicate) {
+        statusBox.textContent = "Dieser identische Vorschlag ist für den Empfänger bereits offen.";
+        return;
+      }
+
+      statusBox.textContent = "Vorschlag wird gesendet …";
       await addDoc(collection(db,"suggestions"),{
         fromUid:session.uid,
         toUid:toUid,
@@ -2486,14 +2502,38 @@ window.WardrobeBridge = {
 
     const ref = doc(db,"suggestions",id);
     if (action === "accept" && direction === "incoming" && item.status === "pending") {
-      const batch = writeBatch(db);
       const newRef = doc(collection(db,"users",session.uid,"outfits"));
-      const copy = sanitizeOutfit(item.outfit,(item.outfit && item.outfit.name ? item.outfit.name : "Vorschlag") + " · von " + ownerName(item.fromUid));
-      if (!copy || !sessionIsCurrent(session)) return;
 
-      batch.set(newRef,Object.assign({},copy,{archived:false,createdAt:serverTimestamp(),updatedAt:serverTimestamp()}));
-      batch.update(ref,{status:"accepted"});
-      await batch.commit();
+      await runTransaction(db, async function(transaction) {
+        const fresh = await transaction.get(ref);
+        if (!fresh.exists()) throw new Error("Vorschlag nicht gefunden");
+
+        const freshData = fresh.data() || {};
+        if (
+          freshData.toUid !== session.uid ||
+          freshData.status !== "pending" ||
+          !sessionIsCurrent(session)
+        ) {
+          throw new Error("Vorschlag nicht mehr offen");
+        }
+
+        const copy = sanitizeOutfit(
+          freshData.outfit,
+          (freshData.outfit && freshData.outfit.name ? freshData.outfit.name : "Vorschlag") +
+            " · von " + ownerName(freshData.fromUid)
+        );
+        if (!copy) throw new Error("Ungültiger Vorschlag");
+
+        transaction.set(
+          newRef,
+          Object.assign({},copy,{
+            archived:false,
+            createdAt:serverTimestamp(),
+            updatedAt:serverTimestamp()
+          })
+        );
+        transaction.update(ref,{status:"accepted"});
+      });
       if (!sessionIsCurrent(session)) return;
 
       currentTab = "mine";
