@@ -725,6 +725,7 @@ const firebaseConfig = {
   let incomingSuggestions = [];
   let sentSuggestions = [];
   let suggestionTarget = null;
+  let suggestionSource = null;
   let authRevision = 0;
   let activeOutfitWrite = "";
   let outfitWriteSequence = 0;
@@ -1255,13 +1256,19 @@ const firebaseConfig = {
 
   function populateSuggestionModal(outfit) {
     suggestionTarget = sanitizeOutfit(outfit,outfit.name);
+    suggestionSource = outfit && currentProfile && outfit._ownerUid === currentProfile.uid && outfit._docId
+      ? { ownerUid: outfit._ownerUid, docId: outfit._docId }
+      : null;
     const select = document.getElementById("suggestRecipient");
     select.innerHTML = allowedUsers.filter(function(u){ return u.uid !== currentProfile.uid; })
       .map(function(u){ return '<option value="' + esc(u.uid) + '">' + esc(u.name) + '</option>'; }).join("");
     document.getElementById("suggestMessage").value = "";
     document.getElementById("suggestMessageStatus").textContent = "";
     document.getElementById("suggestOutfitInfo").textContent =
-      (suggestionTarget ? suggestionTarget.name : "Look") + " · wird als unveränderliche Kopie verschickt.";
+      (suggestionTarget ? suggestionTarget.name : "Look") +
+      (suggestionSource
+        ? " · wird vorgeschlagen und danach aus „Meine Looks“ ins Archiv verschoben."
+        : " · wird als unveränderliche Kopie verschickt.");
     openModal("suggestModal");
   }
 
@@ -1271,9 +1278,11 @@ const firebaseConfig = {
     const message = document.getElementById("suggestMessage").value.trim().slice(0,500);
     const statusBox = document.getElementById("suggestMessageStatus");
     const btn = document.getElementById("sendSuggestionBtn");
-    if (!session || !suggestionTarget || !toUid || toUid === session.uid) return;
+    const target = suggestionTarget ? sanitizeOutfit(suggestionTarget,suggestionTarget.name) : null;
+    const sourceOutfit = suggestionSource ? Object.assign({},suggestionSource) : null;
+    if (!session || !target || !toUid || toUid === session.uid) return;
 
-    const targetFingerprint = outfitFingerprint(suggestionTarget);
+    const targetFingerprint = outfitFingerprint(target);
     const duplicate = sentSuggestions.some(function(item) {
       return item.status === "pending"
         && item.toUid === toUid
@@ -1302,21 +1311,41 @@ const firebaseConfig = {
       }
 
       statusBox.textContent = "Vorschlag wird gesendet …";
-      await addDoc(collection(db,"suggestions"),{
-        fromUid:session.uid,
-        toUid:toUid,
-        message:message,
-        status:"pending",
-        createdAt:serverTimestamp(),
-        outfit:suggestionTarget
+      const suggestionRef = doc(collection(db,"suggestions"));
+      const moveOwnLook = sourceOutfit
+        && sourceOutfit.ownerUid === session.uid
+        && sourceOutfit.docId;
+
+      await runTransaction(db, async function(transaction) {
+        if (!sessionIsCurrent(session)) throw new Error("Sitzung wurde geändert");
+
+        transaction.set(suggestionRef,{
+          fromUid:session.uid,
+          toUid:toUid,
+          message:message,
+          status:"pending",
+          createdAt:serverTimestamp(),
+          outfit:target
+        });
+
+        if (moveOwnLook) {
+          transaction.update(
+            doc(db,"users",session.uid,"outfits",sourceOutfit.docId),
+            {archived:true,updatedAt:serverTimestamp()}
+          );
+        }
       });
       if (!sessionIsCurrent(session)) return;
 
       closeModal("suggestModal");
+      suggestionTarget = null;
+      suggestionSource = null;
       currentTab = "sent";
       await refreshCloud(false,session.revision);
       if (!sessionIsCurrent(session)) return;
-      bridge.message("Outfit-Vorschlag wurde gesendet.");
+      bridge.message(moveOwnLook
+        ? "Outfit-Vorschlag wurde gesendet. Der Look ist nicht mehr unter „Meine Looks“ und bleibt unter „Von mir“ sichtbar."
+        : "Outfit-Vorschlag wurde gesendet.");
     } catch (e) {
       console.error(e);
       if (sessionIsCurrent(session)) statusBox.textContent = "Der Vorschlag konnte nicht gesendet werden.";
