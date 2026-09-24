@@ -1978,6 +1978,11 @@ window.WardrobeBridge = {
     if (activeOutfitWrite === token) activeOutfitWrite = "";
   }
 
+  function setLoginBusy(busy) {
+    loginButton.disabled = Boolean(busy);
+    loginButton.textContent = busy ? "PRÜFE ZUGRIFF …" : "ANMELDEN";
+  }
+
   function readMigrationMarker(key) {
     if (!key) return false;
     try {
@@ -3036,18 +3041,17 @@ window.WardrobeBridge = {
 
   form.addEventListener("submit", async function(event) {
     event.preventDefault();
+    if (loginButton.disabled) return;
+
     authMessage.textContent = "";
-    loginButton.disabled = true;
-    loginButton.textContent = "PRÜFE ZUGRIFF …";
+    setLoginBusy(true);
     try {
       await signInWithEmailAndPassword(auth,LOGIN_EMAILS[userSelect.value],passwordInput.value);
     } catch (error) {
       console.error("Anmeldung fehlgeschlagen",error);
       lockApp("Anmeldung nicht möglich. Benutzer oder Passwort ist nicht korrekt.");
+      setLoginBusy(false);
       passwordInput.select();
-    } finally {
-      loginButton.disabled = false;
-      loginButton.textContent = "ANMELDEN";
     }
   });
 
@@ -3068,6 +3072,7 @@ window.WardrobeBridge = {
       suggestionTarget = null;
       window.wardrobeUser = null;
       lockApp();
+      setLoginBusy(false);
       return;
     }
 
@@ -3080,6 +3085,7 @@ window.WardrobeBridge = {
     suggestionTarget = null;
     window.wardrobeUser = null;
     lockApp("Zugriff wird geprüft …");
+    setLoginBusy(true);
 
     try {
       const profile = await approvedProfile(user);
@@ -3088,12 +3094,14 @@ window.WardrobeBridge = {
       if (!profile) {
         await signOut(auth);
         lockApp("Dieses Konto ist nicht für den Wardrobe-Zugriff freigegeben.");
+        setLoginBusy(false);
         return;
       }
 
       currentProfile = profile;
       window.wardrobeUser = profile;
       unlockApp(profile);
+      setLoginBusy(false);
       await refreshCloud(false,revision);
     } catch (error) {
       if (revision !== authRevision || !auth.currentUser || auth.currentUser.uid !== uid) return;
@@ -3102,10 +3110,12 @@ window.WardrobeBridge = {
       if (error && error.code === "permission-denied") {
         await signOut(auth);
         lockApp("Dieses Konto ist nicht für den Wardrobe-Zugriff freigegeben.");
+        setLoginBusy(false);
         return;
       }
 
       lockApp("Die Zugriffsprüfung ist fehlgeschlagen. Bitte später erneut versuchen.");
+      setLoginBusy(false);
     }
   });
 </script>
