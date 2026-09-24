@@ -125,7 +125,7 @@ service cloud.firestore {
         && outfit.updatedAt is timestamp;
     }
 
-    match /allowedUsers/{uid} {    match /allowedUsers/{uid} {
+    match /allowedUsers/{uid} {
       allow get: if signedIn()
         && (request.auth.uid == uid || approved());
       allow list: if approved();
