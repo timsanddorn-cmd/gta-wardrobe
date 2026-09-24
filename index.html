@@ -59,23 +59,22 @@
         <button type="button" class="genderBtn" id="maleBtn" data-gender="male">HERREN</button>
       </div>
       <div class="badge" id="archiveBadge">DAMEN · WARDROBE</div>
-      <div id="sourceDataStatus" class="badge">Datenstand Klamotten ST: 142 Torso-Einträge · 45 Hosen-Einträge</div>
+      <div id="sourceDataStatus" class="badge">Datenstand Klamotten ST: 143 Torso · 10 Westen · 45 Hosen · 52 Schuhe · 34 T-Shirts</div>
     </div>
   </div>
 
   <section class="catalog">
     <div class="catalogHead">
       <h2>LOOK BUILDER</h2>
-      <p>Oberteil und Unterteil werden getrennt ausgewählt und als gemeinsamer Look gespeichert.</p>
+      <p>Torso, Weste, Hose, Schuhe und T-Shirt werden getrennt ausgewählt und als gemeinsamer Look gespeichert.</p>
     </div>
 
     <div class="slot">
       <button type="button" class="arrow prev" id="torsoPrev" aria-label="Vorheriger Torso">‹</button>
-
       <div class="viewer">
         <div class="imageBox"><img id="torsoImg" alt="Torso"></div>
         <div class="info">
-          <div class="kind">01 · OBERKÖRPER</div>
+          <div class="kind">01 · TORSO</div>
           <div class="id" id="torsoId"></div>
           <div class="desc" id="torsoDesc"></div>
           <div class="position" id="torsoPos"></div>
@@ -85,17 +84,33 @@
           </div>
         </div>
       </div>
-
       <button type="button" class="arrow next" id="torsoNext" aria-label="Nächster Torso">›</button>
     </div>
 
     <div class="slot">
-      <button type="button" class="arrow prev" id="pantsPrev" aria-label="Vorherige Hose">‹</button>
+      <button type="button" class="arrow prev" id="vestPrev" aria-label="Vorherige Weste">‹</button>
+      <div class="viewer">
+        <div class="imageBox"><img id="vestImg" alt="Weste"></div>
+        <div class="info">
+          <div class="kind">02 · WESTE</div>
+          <div class="id" id="vestId"></div>
+          <div class="desc" id="vestDesc"></div>
+          <div class="position" id="vestPos"></div>
+          <div class="textureRow">
+            <label for="vestTexture">Variante / Textur</label>
+            <input id="vestTexture" type="number" min="0" value="0">
+          </div>
+        </div>
+      </div>
+      <button type="button" class="arrow next" id="vestNext" aria-label="Nächste Weste">›</button>
+    </div>
 
+    <div class="slot">
+      <button type="button" class="arrow prev" id="pantsPrev" aria-label="Vorherige Hose">‹</button>
       <div class="viewer">
         <div class="imageBox"><img id="pantsImg" alt="Hose"></div>
         <div class="info">
-          <div class="kind">02 · UNTERKÖRPER</div>
+          <div class="kind">03 · HOSE</div>
           <div class="id" id="pantsId"></div>
           <div class="desc" id="pantsDesc"></div>
           <div class="position" id="pantsPos"></div>
@@ -105,8 +120,43 @@
           </div>
         </div>
       </div>
-
       <button type="button" class="arrow next" id="pantsNext" aria-label="Nächste Hose">›</button>
+    </div>
+
+    <div class="slot">
+      <button type="button" class="arrow prev" id="shoesPrev" aria-label="Vorherige Schuhe">‹</button>
+      <div class="viewer">
+        <div class="imageBox"><img id="shoesImg" alt="Schuhe"></div>
+        <div class="info">
+          <div class="kind">04 · SCHUHE</div>
+          <div class="id" id="shoesId"></div>
+          <div class="desc" id="shoesDesc"></div>
+          <div class="position" id="shoesPos"></div>
+          <div class="textureRow">
+            <label for="shoesTexture">Variante / Textur</label>
+            <input id="shoesTexture" type="number" min="0" value="0">
+          </div>
+        </div>
+      </div>
+      <button type="button" class="arrow next" id="shoesNext" aria-label="Nächste Schuhe">›</button>
+    </div>
+
+    <div class="slot">
+      <button type="button" class="arrow prev" id="tshirtPrev" aria-label="Vorheriges T-Shirt">‹</button>
+      <div class="viewer">
+        <div class="imageBox"><img id="tshirtImg" alt="T-Shirt"></div>
+        <div class="info">
+          <div class="kind">05 · T-SHIRT</div>
+          <div class="id" id="tshirtId"></div>
+          <div class="desc" id="tshirtDesc"></div>
+          <div class="position" id="tshirtPos"></div>
+          <div class="textureRow">
+            <label for="tshirtTexture">Variante / Textur</label>
+            <input id="tshirtTexture" type="number" min="0" value="0">
+          </div>
+        </div>
+      </div>
+      <button type="button" class="arrow next" id="tshirtNext" aria-label="Nächstes T-Shirt">›</button>
     </div>
 
     <div class="actions">
