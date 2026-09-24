@@ -113,6 +113,7 @@ service cloud.firestore {
 
     match /users/{uid}/outfits/{outfitId} {
       allow read: if approved()
+        && approvedUid(uid)
         && (request.auth.uid == uid || resource.data.archived == false);
       allow create: if approved()
         && request.auth.uid == uid
