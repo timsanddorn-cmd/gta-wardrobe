@@ -494,16 +494,19 @@ function applyBackup(data, sourceLabel = "Sicherung") {
   switchGender(restoredGender, false);
 
   if (data.state && typeof data.state === "object") {
-    state.torsoIndex = Math.max(0, Number(data.state.torsoIndex) || 0);
-    state.pantsIndex = Math.max(0, Number(data.state.pantsIndex) || 0);
-    state.torsoTexture = Math.max(0, Number(data.state.torsoTexture) || 0);
-    state.pantsTexture = Math.max(0, Number(data.state.pantsTexture) || 0);
+    CLOTHING_PARTS.forEach(function(part) {
+      const indexKey = part.key + "Index";
+      const textureKey = part.key + "Texture";
+      if (Object.prototype.hasOwnProperty.call(data.state,indexKey)) {
+        state[indexKey] = Math.max(0,Number(data.state[indexKey]) || 0);
+      }
+      if (Object.prototype.hasOwnProperty.call(data.state,textureKey)) {
+        state[textureKey] = Math.max(0,Number(data.state[textureKey]) || 0);
+      }
+    });
   }
 
-  state.torsoIndex = catalog.torso.length
-    ? Math.min(state.torsoIndex, catalog.torso.length - 1) : 0;
-  state.pantsIndex = catalog.pants.length
-    ? Math.min(state.pantsIndex, catalog.pants.length - 1) : 0;
+  clampSelectionState();
 
   render();
   renderSavedOutfits();
