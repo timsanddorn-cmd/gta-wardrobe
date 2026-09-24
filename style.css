@@ -9,6 +9,7 @@
   --accent2:#6247ec;
 }
 *{box-sizing:border-box}
+.authUsernameHint{display:none!important}
 body{
   margin:0;
   min-height:100vh;
