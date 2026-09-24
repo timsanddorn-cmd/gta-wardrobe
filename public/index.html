@@ -1932,6 +1932,28 @@ window.WardrobeBridge = {
     return text || "0";
   }
 
+  function captureSession() {
+    const user = auth.currentUser;
+    if (!currentProfile || !user || currentProfile.uid !== user.uid) return null;
+    return {
+      uid: currentProfile.uid,
+      name: currentProfile.name,
+      revision: authRevision,
+      user: user
+    };
+  }
+
+  function sessionIsCurrent(session) {
+    return Boolean(
+      session &&
+      session.revision === authRevision &&
+      currentProfile &&
+      currentProfile.uid === session.uid &&
+      auth.currentUser &&
+      auth.currentUser.uid === session.uid
+    );
+  }
+
   function esc(value) {
     return String(value == null ? "" : value).replace(/[&<>"']/g, function(c) {
       return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c];
@@ -2260,9 +2282,11 @@ window.WardrobeBridge = {
   }
 
   async function saveCurrentLook() {
-    if (!currentProfile) return;
+    const session = captureSession();
+    if (!session) return;
+
     const rawName = cloudOutfitName.value.trim();
-    const name = rawName || ("Outfit " + (allOutfits.filter(function(x){ return x._ownerUid === currentProfile.uid; }).length + 1));
+    const name = rawName || ("Outfit " + (allOutfits.filter(function(x){ return x._ownerUid === session.uid; }).length + 1));
     const raw = bridge.snapshot(name);
     const outfit = sanitizeOutfit(raw,name);
     if (!outfit) {
@@ -2272,18 +2296,21 @@ window.WardrobeBridge = {
 
     cloudSaveBtn.disabled = true;
     try {
-      await addDoc(collection(db,"users",currentProfile.uid,"outfits"), Object.assign({},outfit,{
+      await addDoc(collection(db,"users",session.uid,"outfits"), Object.assign({},outfit,{
         archived:false,
         createdAt:serverTimestamp(),
         updatedAt:serverTimestamp()
       }));
+      if (!sessionIsCurrent(session)) return;
+
       cloudOutfitName.value = "";
       currentTab = "mine";
-      await refreshCloud(false);
+      await refreshCloud(false,session.revision);
+      if (!sessionIsCurrent(session)) return;
       bridge.message('Look "' + name + '" wurde in deiner Cloud gespeichert.');
     } catch (e) {
       console.error(e);
-      bridge.message("Der Look konnte nicht gespeichert werden.");
+      if (sessionIsCurrent(session)) bridge.message("Der Look konnte nicht gespeichert werden.");
     } finally {
       cloudSaveBtn.disabled = false;
     }
@@ -2295,9 +2322,17 @@ window.WardrobeBridge = {
   }
 
   async function changeOwnOutfit(outfit, changes, message) {
-    if (!currentProfile || !outfit || outfit._ownerUid !== currentProfile.uid) return;
-    await updateDoc(doc(db,"users",currentProfile.uid,"outfits",outfit._docId), Object.assign({},changes,{updatedAt:serverTimestamp()}));
-    await refreshCloud(false);
+    const session = captureSession();
+    if (!session || !outfit || outfit._ownerUid !== session.uid) return;
+
+    await updateDoc(
+      doc(db,"users",session.uid,"outfits",outfit._docId),
+      Object.assign({},changes,{updatedAt:serverTimestamp()})
+    );
+    if (!sessionIsCurrent(session)) return;
+
+    await refreshCloud(false,session.revision);
+    if (!sessionIsCurrent(session)) return;
     bridge.message(message);
   }
 
@@ -2314,11 +2349,12 @@ window.WardrobeBridge = {
   }
 
   async function sendSuggestion() {
+    const session = captureSession();
     const toUid = document.getElementById("suggestRecipient").value;
     const message = document.getElementById("suggestMessage").value.trim().slice(0,500);
     const statusBox = document.getElementById("suggestMessageStatus");
     const btn = document.getElementById("sendSuggestionBtn");
-    if (!currentProfile || !suggestionTarget || !toUid || toUid === currentProfile.uid) return;
+    if (!session || !suggestionTarget || !toUid || toUid === session.uid) return;
 
     const targetFingerprint = outfitFingerprint(suggestionTarget);
     const duplicate = sentSuggestions.some(function(item) {
@@ -2336,20 +2372,23 @@ window.WardrobeBridge = {
     statusBox.textContent = "Vorschlag wird gesendet …";
     try {
       await addDoc(collection(db,"suggestions"),{
-        fromUid:currentProfile.uid,
+        fromUid:session.uid,
         toUid:toUid,
         message:message,
         status:"pending",
         createdAt:serverTimestamp(),
         outfit:suggestionTarget
       });
+      if (!sessionIsCurrent(session)) return;
+
       closeModal("suggestModal");
       currentTab = "sent";
-      await refreshCloud(false);
+      await refreshCloud(false,session.revision);
+      if (!sessionIsCurrent(session)) return;
       bridge.message("Outfit-Vorschlag wurde gesendet.");
     } catch (e) {
       console.error(e);
-      statusBox.textContent = "Der Vorschlag konnte nicht gesendet werden.";
+      if (sessionIsCurrent(session)) statusBox.textContent = "Der Vorschlag konnte nicht gesendet werden.";
     } finally {
       btn.disabled = false;
     }
@@ -2361,6 +2400,9 @@ window.WardrobeBridge = {
   }
 
   async function handleSuggestionAction(action,id,direction) {
+    const session = captureSession();
+    if (!session) return;
+
     const item = findSuggestion(id,direction);
     if (!item) return;
     if (action === "load") {
@@ -2371,36 +2413,49 @@ window.WardrobeBridge = {
     const ref = doc(db,"suggestions",id);
     if (action === "accept" && direction === "incoming" && item.status === "pending") {
       const batch = writeBatch(db);
-      const newRef = doc(collection(db,"users",currentProfile.uid,"outfits"));
+      const newRef = doc(collection(db,"users",session.uid,"outfits"));
       const copy = sanitizeOutfit(item.outfit,(item.outfit && item.outfit.name ? item.outfit.name : "Vorschlag") + " · von " + ownerName(item.fromUid));
+      if (!copy || !sessionIsCurrent(session)) return;
+
       batch.set(newRef,Object.assign({},copy,{archived:false,createdAt:serverTimestamp(),updatedAt:serverTimestamp()}));
       batch.update(ref,{status:"accepted"});
       await batch.commit();
+      if (!sessionIsCurrent(session)) return;
+
       currentTab = "mine";
-      await refreshCloud(false);
+      await refreshCloud(false,session.revision);
+      if (!sessionIsCurrent(session)) return;
       bridge.message("Vorschlag übernommen und als eigener Look gespeichert.");
       return;
     }
     if (action === "decline" && direction === "incoming" && item.status === "pending") {
+      if (!sessionIsCurrent(session)) return;
       await updateDoc(ref,{status:"declined"});
-      await refreshCloud(false);
-      bridge.message("Vorschlag abgelehnt.");
+      if (!sessionIsCurrent(session)) return;
+      await refreshCloud(false,session.revision);
+      if (sessionIsCurrent(session)) bridge.message("Vorschlag abgelehnt.");
       return;
     }
     if (action === "withdraw" && direction === "sent" && item.status === "pending") {
+      if (!sessionIsCurrent(session)) return;
       await updateDoc(ref,{status:"withdrawn"});
-      await refreshCloud(false);
-      bridge.message("Vorschlag zurückgezogen.");
+      if (!sessionIsCurrent(session)) return;
+      await refreshCloud(false,session.revision);
+      if (sessionIsCurrent(session)) bridge.message("Vorschlag zurückgezogen.");
     }
   }
 
   async function migrateLocalLooks() {
-    if (!currentProfile) return;
+    const session = captureSession();
+    if (!session) return;
+
     const local = bridge.localOutfits().map(function(x){ return sanitizeOutfit(x,x && x.name); }).filter(Boolean);
     if (!local.length) return;
 
     try {
-      const snap = await getDocs(collection(db,"users",currentProfile.uid,"outfits"));
+      const snap = await getDocs(collection(db,"users",session.uid,"outfits"));
+      if (!sessionIsCurrent(session)) return;
+
       const existing = new Set(
         snap.docs
           .map(function(d){ return sanitizeOutfit(d.data(), d.data() && d.data().name); })
@@ -2416,30 +2471,37 @@ window.WardrobeBridge = {
       });
 
       if (!pending.length) {
-        localStorage.setItem("gtaWardrobeCloudMigrated_" + currentProfile.uid,"1");
-        await refreshCloud(false);
-        bridge.message("Alle lokalen Looks sind bereits in deinem Cloud-Konto vorhanden.");
+        localStorage.setItem("gtaWardrobeCloudMigrated_" + session.uid,"1");
+        await refreshCloud(false,session.revision);
+        if (sessionIsCurrent(session)) bridge.message("Alle lokalen Looks sind bereits in deinem Cloud-Konto vorhanden.");
         return;
       }
 
       if (!confirm(pending.length + " noch nicht übernommene lokale Looks in dein Cloud-Konto übernehmen?")) return;
+      if (!sessionIsCurrent(session)) return;
 
       for (let offset = 0; offset < pending.length; offset += 400) {
+        if (!sessionIsCurrent(session)) return;
+
         const batch = writeBatch(db);
         pending.slice(offset,offset + 400).forEach(function(outfit) {
-          const ref = doc(collection(db,"users",currentProfile.uid,"outfits"));
+          const ref = doc(collection(db,"users",session.uid,"outfits"));
           batch.set(ref,Object.assign({},outfit,{archived:false,createdAt:serverTimestamp(),updatedAt:serverTimestamp()}));
         });
         await batch.commit();
+        if (!sessionIsCurrent(session)) return;
       }
 
-      localStorage.setItem("gtaWardrobeCloudMigrated_" + currentProfile.uid,"1");
-      await refreshCloud(false);
-      bridge.message(pending.length + " lokale Looks wurden in die Cloud übernommen.");
+      localStorage.setItem("gtaWardrobeCloudMigrated_" + session.uid,"1");
+      await refreshCloud(false,session.revision);
+      if (sessionIsCurrent(session)) bridge.message(pending.length + " lokale Looks wurden in die Cloud übernommen.");
     } catch (e) {
       console.error(e);
-      await refreshCloud(false);
-      bridge.message("Lokale Looks konnten nicht vollständig übernommen werden. Bereits übernommene Duplikate werden beim nächsten Versuch übersprungen.");
+      if (!sessionIsCurrent(session)) return;
+      await refreshCloud(false,session.revision);
+      if (sessionIsCurrent(session)) {
+        bridge.message("Lokale Looks konnten nicht vollständig übernommen werden. Bereits übernommene Duplikate werden beim nächsten Versuch übersprungen.");
+      }
     }
   }
 
@@ -2469,95 +2531,161 @@ window.WardrobeBridge = {
   }
 
   async function importLooksFile(file) {
+    const session = captureSession();
+    if (!session) return;
+
     try {
       if (!file || file.size > MAX_IMPORT_BYTES) throw new Error("Datei zu groß");
-      const data = JSON.parse(await file.text());
+      const fileText = await file.text();
+      if (!sessionIsCurrent(session)) return;
+
+      const data = JSON.parse(fileText);
       const source = Array.isArray(data) ? data : (Array.isArray(data.outfits) ? data.outfits : data.cloudOutfits);
       if (!Array.isArray(source)) throw new Error("Format");
+      if (!source.length) throw new Error("Leer");
+      if (source.length > 400) throw new Error("Zu viele");
+
       const cleaned = source.map(function(x){ return sanitizeOutfit(x,x && x.name); }).filter(Boolean);
-      if (!cleaned.length) throw new Error("Leer");
-      if (cleaned.length > 400) throw new Error("Zu viele");
+      if (cleaned.length !== source.length) throw new Error("Ungültige Looks");
+
+      const seen = new Set(
+        allOutfits
+          .filter(function(x){ return x._ownerUid === session.uid; })
+          .map(outfitFingerprint)
+          .filter(Boolean)
+      );
+      const pending = cleaned.filter(function(outfit) {
+        const key = outfitFingerprint(outfit);
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      if (!pending.length) {
+        bridge.message("Import geprüft: Es gibt keine neuen Looks hinzuzufügen.");
+        return;
+      }
+      if (!sessionIsCurrent(session)) return;
+
       const batch = writeBatch(db);
-      cleaned.forEach(function(outfit) {
-        const ref = doc(collection(db,"users",currentProfile.uid,"outfits"));
+      pending.forEach(function(outfit) {
+        const ref = doc(collection(db,"users",session.uid,"outfits"));
         batch.set(ref,Object.assign({},outfit,{archived:Boolean(outfit.archived),createdAt:serverTimestamp(),updatedAt:serverTimestamp()}));
       });
       await batch.commit();
+      if (!sessionIsCurrent(session)) return;
+
       currentTab = "mine";
-      await refreshCloud(false);
-      bridge.message(cleaned.length + " Look(s) wurden deinem Konto hinzugefügt.");
+      await refreshCloud(false,session.revision);
+      if (!sessionIsCurrent(session)) return;
+
+      const skipped = cleaned.length - pending.length;
+      bridge.message(
+        pending.length + " Look(s) wurden deinem Konto hinzugefügt." +
+        (skipped ? " " + skipped + " bereits vorhandene Duplikat(e) wurden übersprungen." : "")
+      );
     } catch (e) {
       console.error(e);
-      bridge.message("Import fehlgeschlagen. Die Datei enthält keine gültigen Wardrobe-Looks.");
+      if (sessionIsCurrent(session)) {
+        bridge.message("Import fehlgeschlagen. Die Datei ist ungültig, zu groß oder enthält fehlerhafte Wardrobe-Looks.");
+      }
     }
   }
 
   async function fullBackup() {
-    if (!currentProfile) return;
+    const session = captureSession();
+    if (!session) return;
+
     try {
-      const snap = await getDocs(collection(db,"users",currentProfile.uid,"outfits"));
+      const snap = await getDocs(collection(db,"users",session.uid,"outfits"));
+      if (!sessionIsCurrent(session)) return;
+
       const own = snap.docs
         .map(function(d){ return sanitizeOutfit(d.data(), d.data() && d.data().name); })
         .filter(Boolean);
 
-      const migrationKey = "gtaWardrobeCloudMigrated_" + currentProfile.uid;
+      const migrationKey = "gtaWardrobeCloudMigrated_" + session.uid;
       const fullLocalDump = bridge.localStorageDump();
       const personalLocalStorage = {};
       if (Object.prototype.hasOwnProperty.call(fullLocalDump,migrationKey)) {
         personalLocalStorage[migrationKey] = fullLocalDump[migrationKey];
       }
 
-      downloadJson("wardrobe-" + currentProfile.name.toLowerCase() + "-vollsicherung.json",{
+      downloadJson("wardrobe-" + session.name.toLowerCase() + "-vollsicherung.json",{
         format:"GTA_WARDROBE_ACCOUNT_BACKUP",
         version:2,
         createdAt:new Date().toISOString(),
-        ownerName:currentProfile.name,
+        ownerUid:session.uid,
+        ownerName:session.name,
         cloudOutfits:own,
         localStorage:personalLocalStorage
       });
-      bridge.message("Vollständige persönliche Sicherung erstellt.");
+      if (sessionIsCurrent(session)) bridge.message("Vollständige persönliche Sicherung erstellt.");
     } catch (e) {
       console.error(e);
-      bridge.message("Vollständige Sicherung konnte nicht erstellt werden.");
+      if (sessionIsCurrent(session)) bridge.message("Vollständige Sicherung konnte nicht erstellt werden.");
     }
   }
 
   async function restoreBackup(file) {
+    const session = captureSession();
+    if (!session) return;
+
     try {
       if (!file || file.size > MAX_BACKUP_BYTES) throw new Error("Datei zu groß");
-      const data = JSON.parse(await file.text());
+      const fileText = await file.text();
+      if (!sessionIsCurrent(session)) return;
+
+      const data = JSON.parse(fileText);
       if (!data || data.format !== "GTA_WARDROBE_ACCOUNT_BACKUP" || !Array.isArray(data.cloudOutfits)) throw new Error("Format");
 
-      const typed = prompt("Diese Aktion ersetzt deine aktuellen Cloud-Looks durch die Sicherung.\n\nTippe WIEDERHERSTELLEN, um fortzufahren:");
-      if (typed !== "WIEDERHERSTELLEN") {
-        bridge.message("Wiederherstellung abgebrochen.");
-        return;
-      }
-      if (!currentProfile) throw new Error("Keine Sitzung");
+      const backupOwnerUid = typeof data.ownerUid === "string" ? data.ownerUid : "";
+      const backupOwnerName = typeof data.ownerName === "string" ? data.ownerName.trim() : "";
+      if (backupOwnerUid && backupOwnerUid !== session.uid) throw new Error("Falsches Konto");
+      if (!backupOwnerUid && backupOwnerName && backupOwnerName !== session.name) throw new Error("Falsches Konto");
+      if (!backupOwnerUid && !backupOwnerName) throw new Error("Kontozuordnung fehlt");
 
       const cleaned = data.cloudOutfits.map(function(x){ return sanitizeOutfit(x,x && x.name); }).filter(Boolean);
-      const currentSnap = await getDocs(collection(db,"users",currentProfile.uid,"outfits"));
+      if (cleaned.length !== data.cloudOutfits.length) throw new Error("Ungültige Looks");
+
+      const typed = prompt(
+        "Diese Aktion ersetzt die aktuellen Cloud-Looks von " + session.name +
+        " durch die Sicherung.\n\nTippe WIEDERHERSTELLEN, um fortzufahren:"
+      );
+      if (typed !== "WIEDERHERSTELLEN") {
+        if (sessionIsCurrent(session)) bridge.message("Wiederherstellung abgebrochen.");
+        return;
+      }
+      if (!sessionIsCurrent(session)) return;
+
+      const currentSnap = await getDocs(collection(db,"users",session.uid,"outfits"));
+      if (!sessionIsCurrent(session)) return;
       if (currentSnap.size + cleaned.length > MAX_ATOMIC_RESTORE_WRITES) throw new Error("Zu viele Operationen");
 
       const batch = writeBatch(db);
-      currentSnap.docs.forEach(function(d){ batch.delete(doc(db,"users",currentProfile.uid,"outfits",d.id)); });
+      currentSnap.docs.forEach(function(d){ batch.delete(doc(db,"users",session.uid,"outfits",d.id)); });
       cleaned.forEach(function(outfit){
-        const ref = doc(collection(db,"users",currentProfile.uid,"outfits"));
+        const ref = doc(collection(db,"users",session.uid,"outfits"));
         batch.set(ref,Object.assign({},outfit,{createdAt:serverTimestamp(),updatedAt:serverTimestamp()}));
       });
-      await batch.commit();
+      if (!sessionIsCurrent(session)) return;
 
-      const migrationKey = "gtaWardrobeCloudMigrated_" + currentProfile.uid;
+      await batch.commit();
+      if (!sessionIsCurrent(session)) return;
+
+      const migrationKey = "gtaWardrobeCloudMigrated_" + session.uid;
       if (data.localStorage && typeof data.localStorage === "object") {
         bridge.restoreLocalStorage(data.localStorage,[migrationKey]);
       }
 
       currentTab = "mine";
-      await refreshCloud(false);
-      bridge.message("Persönliche Sicherung wurde wiederhergestellt.");
+      await refreshCloud(false,session.revision);
+      if (sessionIsCurrent(session)) bridge.message("Persönliche Sicherung wurde wiederhergestellt.");
     } catch (e) {
       console.error(e);
-      bridge.message("Wiederherstellung fehlgeschlagen. Datei ungültig, zu groß oder enthält zu viele Looks.");
+      if (sessionIsCurrent(session)) {
+        bridge.message("Wiederherstellung fehlgeschlagen. Prüfe Datei, Konto-Zuordnung und Anzahl der Looks.");
+      }
     }
   }
 
@@ -2648,6 +2776,8 @@ window.WardrobeBridge = {
     const repeat = document.getElementById("newPasswordRepeat").value;
     const msg = document.getElementById("passwordChangeStatus");
     const btn = document.getElementById("passwordChangeBtn");
+    const session = captureSession();
+    const accountUser = session && session.user;
 
     if (newPassword.length < 10) {
       msg.textContent = "Das neue Passwort muss mindestens 10 Zeichen lang sein.";
@@ -2657,7 +2787,7 @@ window.WardrobeBridge = {
       msg.textContent = "Die beiden neuen Passwörter stimmen nicht überein.";
       return;
     }
-    if (!auth.currentUser || !auth.currentUser.email) {
+    if (!accountUser || !accountUser.email) {
       msg.textContent = "Es ist kein Benutzer angemeldet.";
       return;
     }
@@ -2665,9 +2795,16 @@ window.WardrobeBridge = {
     btn.disabled = true;
     msg.textContent = "Passwort wird geprüft …";
     try {
-      const credential = EmailAuthProvider.credential(auth.currentUser.email,oldPassword);
-      await reauthenticateWithCredential(auth.currentUser,credential);
-      await updatePassword(auth.currentUser,newPassword);
+      const credential = EmailAuthProvider.credential(accountUser.email,oldPassword);
+      await reauthenticateWithCredential(accountUser,credential);
+      if (!sessionIsCurrent(session)) {
+        msg.textContent = "Passwortänderung abgebrochen, weil der Benutzer gewechselt wurde.";
+        return;
+      }
+
+      await updatePassword(accountUser,newPassword);
+      if (!sessionIsCurrent(session)) return;
+
       msg.textContent = "Passwort erfolgreich geändert.";
       document.getElementById("currentPassword").value = "";
       document.getElementById("newPassword").value = "";
@@ -2675,7 +2812,9 @@ window.WardrobeBridge = {
       bridge.message("Dein Passwort wurde geändert.");
     } catch (err) {
       console.error(err);
-      msg.textContent = "Passwort konnte nicht geändert werden. Prüfe dein aktuelles Passwort.";
+      if (sessionIsCurrent(session)) {
+        msg.textContent = "Passwort konnte nicht geändert werden. Prüfe dein aktuelles Passwort.";
+      }
     } finally {
       btn.disabled = false;
     }
