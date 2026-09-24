@@ -1312,9 +1312,11 @@ const firebaseConfig = {
 
       statusBox.textContent = "Vorschlag wird gesendet …";
       const suggestionRef = doc(collection(db,"suggestions"));
-      const moveOwnLook = sourceOutfit
+      const moveOwnLook = Boolean(
+        sourceOutfit
         && sourceOutfit.ownerUid === session.uid
-        && sourceOutfit.docId;
+        && sourceOutfit.docId
+      );
 
       await runTransaction(db, async function(transaction) {
         if (!sessionIsCurrent(session)) throw new Error("Sitzung wurde geändert");
@@ -1911,6 +1913,7 @@ const firebaseConfig = {
       incomingSuggestions = [];
       sentSuggestions = [];
       suggestionTarget = null;
+      suggestionSource = null;
       window.wardrobeUser = null;
       lockApp();
       setLoginBusy(false);
@@ -1924,6 +1927,7 @@ const firebaseConfig = {
     incomingSuggestions = [];
     sentSuggestions = [];
     suggestionTarget = null;
+    suggestionSource = null;
     window.wardrobeUser = null;
     lockApp("Zugriff wird geprüft …");
     setLoginBusy(true);
