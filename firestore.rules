@@ -18,7 +18,8 @@ service cloud.firestore {
       return part is map
         && part.keys().hasAll(['id', 'description', 'texture'])
         && part.keys().hasOnly(['id', 'description', 'texture'])
-        && (part.id is int || (part.id is string && part.id.size() > 0 && part.id.size() <= 120))
+        && ((part.id is int && part.id >= 0)
+          || (part.id is string && part.id.size() > 0 && part.id.size() <= 120))
         && part.description is string
         && part.description.size() <= 220
         && part.texture is int
@@ -113,9 +114,16 @@ service cloud.firestore {
     match /users/{uid}/outfits/{outfitId} {
       allow read: if approved()
         && (request.auth.uid == uid || resource.data.archived == false);
-      allow create, update: if approved()
+      allow create: if approved()
         && request.auth.uid == uid
-        && validStoredOutfit(request.resource.data);
+        && validStoredOutfit(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if approved()
+        && request.auth.uid == uid
+        && validStoredOutfit(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
       allow delete: if approved() && request.auth.uid == uid;
     }
 
@@ -131,6 +139,7 @@ service cloud.firestore {
         && request.resource.data.message.size() <= 500
         && request.resource.data.status == 'pending'
         && request.resource.data.createdAt is timestamp
+        && request.resource.data.createdAt == request.time
         && validOutfit(request.resource.data.outfit);
 
       allow read: if approved()
