@@ -231,7 +231,7 @@ document.getElementById("resetBtn").addEventListener("click", function() {
 });
 
 
-const OUTFIT_STORE_KEY =const OUTFIT_STORE_KEY = "gtaWardrobeNamedOutfitsV1";
+const OUTFIT_STORE_KEY = "gtaWardrobeNamedOutfitsV1";
 
 function readSavedOutfits() {
   try {
@@ -327,7 +327,7 @@ function applyOutfitSelection(outfit) {
   return true;
 }
 
-function escapeHtml(text) {function escapeHtml(text) {
+function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, c => ({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
   }[c]));
@@ -403,7 +403,7 @@ function loadNamedOutfit(id) {
   status.textContent = 'Look "' + (outfit.name || "Unbenannt") + '" geladen.';
 }
 
-function deleteNamedOutfit(id) {function deleteNamedOutfit(id) {
+function deleteNamedOutfit(id) {
   const list = readSavedOutfits().filter(x => x.id !== id);
   writeSavedOutfits(list);
   renderSavedOutfits();
@@ -676,7 +676,7 @@ window.WardrobeBridge = {
     window.scrollTo({top: document.querySelector(".catalog").offsetTop, behavior:"smooth"});
     return true;
   },
-  message: function(text) {  message: function(text) {
+  message: function(text) {
     status.textContent = String(text || "");
   },
   localStorageDump: function() {
@@ -946,7 +946,7 @@ const firebaseConfig = {
     return clean;
   }
 
-  function validIncomingGarment(part) {  function validIncomingGarment(part) {
+  function validIncomingGarment(part) {
     if (!part || typeof part !== "object" || Array.isArray(part)) return false;
 
     const id = part.id;
@@ -1000,7 +1000,7 @@ const firebaseConfig = {
     return JSON.stringify(parts);
   }
 
-  function ownerName(uid) {  function ownerName(uid) {
+  function ownerName(uid) {
     const user = allowedUsers.find(function(x){ return x.uid === uid; });
     return user ? user.name : "Benutzer";
   }
@@ -1115,7 +1115,7 @@ const firebaseConfig = {
     return lines.join("<br>");
   }
 
-  function outfitCard(outfit, mode) {  function outfitCard(outfit, mode) {
+  function outfitCard(outfit, mode) {
     const key = outfit._ownerUid + ":" + outfit._docId;
     let actions = '<button class="cloudBtn" data-action="load" data-key="' + esc(key) + '">ANSEHEN / LADEN</button>';
     if (mode === "mine") {
