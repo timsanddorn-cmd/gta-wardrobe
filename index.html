@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Wardrobe Archive – GTA RP</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="stylesheet" href="style.css">
 </head>
 <body class="auth-locked">
@@ -16,6 +17,7 @@
       <p>Dieser Bereich ist ausschließlich für die freigegebenen Nutzer Tim, Ray, Andy und Kata bestimmt.</p>
     </div>
     <form class="authForm" id="loginForm" autocomplete="on">
+      <input class="authUsernameHint" id="loginUsername" name="username" type="text" autocomplete="username" value="tim" tabindex="-1" aria-hidden="true">
       <div class="authField">
         <label for="loginUser">Benutzer</label>
         <select id="loginUser" required>
@@ -254,6 +256,7 @@
           <button class="cloudModalClose" type="button" data-close-modal="accountModal" aria-label="Schließen">×</button>
         </div>
         <form class="cloudModalBody" id="passwordChangeForm">
+          <input class="authUsernameHint" id="passwordChangeUsername" name="username" type="text" autocomplete="username" value="" tabindex="-1" aria-hidden="true">
           <div class="cloudField"><label for="currentPassword">Aktuelles Passwort</label><input id="currentPassword" type="password" autocomplete="current-password" required></div>
           <div class="cloudField"><label for="newPassword">Neues Passwort · mindestens 10 Zeichen</label><input id="newPassword" type="password" autocomplete="new-password" minlength="10" required></div>
           <div class="cloudField"><label for="newPasswordRepeat">Neues Passwort wiederholen</label><input id="newPasswordRepeat" type="password" autocomplete="new-password" minlength="10" required></div>
