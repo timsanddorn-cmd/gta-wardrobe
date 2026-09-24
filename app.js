@@ -184,35 +184,40 @@ function writeSavedOutfits(list) {
 }
 
 function currentOutfitSnapshot(name) {
-  const torso = current("torso");
-  const pants = current("pants");
-  if (!torso || !pants) return null;
+  const selected = {};
+  for (const part of CLOTHING_PARTS) {
+    const item = current(part.key);
+    if (!item) return null;
+    selected[part.key] = item;
+  }
 
-  return {
+  const outfit = {
     id: Date.now(),
+    schemaVersion: 2,
     gender: activeGender,
     name: name,
-    savedAt: new Date().toISOString(),
-    torsoIndex: state.torsoIndex,
-    pantsIndex: state.pantsIndex,
-    torso: {
-      id: torso.id,
-      description: torso.description,
-      texture: state.torsoTexture
-    },
-    pants: {
-      id: pants.id,
-      description: pants.description,
-      texture: state.pantsTexture
-    }
+    savedAt: new Date().toISOString()
   };
+  CLOTHING_PARTS.forEach(function(part) {
+    const key = part.key;
+    outfit[key + "Index"] = state[key + "Index"] || 0;
+    outfit[key] = {
+      id: selected[key].id,
+      description: selected[key].description,
+      texture: state[key + "Texture"] || 0
+    };
+  });
+  return outfit;
 }
 
 function icText(outfit) {
-  return [
-    "Torso: ID " + outfit.torso.id + " | Variante " + outfit.torso.texture,
-    "Hose: ID " + outfit.pants.id + " | Variante " + outfit.pants.texture
-  ].join("\n");
+  return CLOTHING_PARTS
+    .filter(function(part){ return outfit && outfit[part.key]; })
+    .map(function(part) {
+      const garment = outfit[part.key];
+      return part.label + ": ID " + garment.id + " | Variante " + (garment.texture || 0);
+    })
+    .join("\n");
 }
 
 function escapeHtml(text) {
@@ -221,11 +226,21 @@ function escapeHtml(text) {
   }[c]));
 }
 
+function localOutfitMeta(outfit) {
+  return CLOTHING_PARTS
+    .filter(function(part){ return outfit && outfit[part.key]; })
+    .map(function(part) {
+      const garment = outfit[part.key];
+      return part.label + " ID " + escapeHtml(garment.id) + " · " + escapeHtml(garment.description || "");
+    })
+    .join("<br>");
+}
+
 function renderSavedOutfits() {
   const list = readSavedOutfits();
   const box = document.getElementById("savedList");
   const count = document.getElementById("savedCount");
-  count.textContent = list.length + (list.length === 1 ? " gespeichert" : " gespeichert");
+  count.textContent = list.length + " gespeichert";
 
   if (!list.length) {
     box.innerHTML = '<div class="savedEmpty">Noch kein Outfit gespeichert.</div>';
@@ -240,10 +255,7 @@ function renderSavedOutfits() {
       <div class="savedItemTop">
         <div>
           <div class="savedName"><span class="genderTag">${(outfit.gender || "female") === "male" ? "HERREN" : "DAMEN"}</span>${escapeHtml(outfit.name || "Unbenanntes Outfit")}</div>
-          <div class="savedMeta">
-            Torso ID ${escapeHtml(outfit.torso.id)} · ${escapeHtml(outfit.torso.description || "")}<br>
-            Hose ID ${escapeHtml(outfit.pants.id)} · ${escapeHtml(outfit.pants.description || "")}
-          </div>
+          <div class="savedMeta">${localOutfitMeta(outfit)}</div>
         </div>
         <div class="savedButtons">
           <button type="button" data-load="${outfit.id}">Laden</button>
@@ -258,7 +270,6 @@ function renderSavedOutfits() {
   box.querySelectorAll("[data-load]").forEach(btn => {
     btn.addEventListener("click", () => loadNamedOutfit(Number(btn.dataset.load)));
   });
-
   box.querySelectorAll("[data-delete]").forEach(btn => {
     btn.addEventListener("click", () => deleteNamedOutfit(Number(btn.dataset.delete)));
   });
@@ -271,7 +282,7 @@ function saveNamedOutfit() {
 
   if (!snapshot) {
     status.textContent = activeGender === "male"
-      ? "Für Herren sind aktuell noch keine Kleidungsdaten hinterlegt."
+      ? "Für Herren sind aktuell noch keine vollständigen Kleidungsdaten hinterlegt."
       : "Für diese Auswahl fehlen Kleidungsdaten.";
     return;
   }
@@ -284,25 +295,36 @@ function saveNamedOutfit() {
   status.textContent = 'Look "' + name + '" gespeichert.';
 }
 
+function applyOutfitSelection(outfit) {
+  if (!outfit) return false;
+  const targetGender = outfit.gender === "male" ? "male" : "female";
+  switchGender(targetGender, false);
+
+  CLOTHING_PARTS.forEach(function(part) {
+    const key = part.key;
+    const list = catalog[key] || [];
+    const garment = outfit[key];
+    let index = 0;
+    if (garment && garment.id != null) {
+      index = list.findIndex(function(x){ return String(x.id) === String(garment.id); });
+    }
+    if (index < 0) {
+      index = Math.min(
+        Math.max(0, Number(outfit[key + "Index"]) || 0),
+        Math.max(0,list.length - 1)
+      );
+    }
+    state[key + "Index"] = list.length ? index : 0;
+    state[key + "Texture"] = garment ? Math.max(0,Number(garment.texture) || 0) : 0;
+  });
+  render();
+  return true;
+}
+
 function loadNamedOutfit(id) {
   const outfit = readSavedOutfits().find(x => x.id === id);
   if (!outfit) return;
-
-  const targetGender = outfit.gender || "female";
-  switchGender(targetGender, false);
-
-  let torsoIndex = catalog.torso.findIndex(x => String(x.id) === String(outfit.torso.id));
-  let pantsIndex = catalog.pants.findIndex(x => String(x.id) === String(outfit.pants.id));
-
-  if (torsoIndex < 0) torsoIndex = Math.min(Math.max(0, outfit.torsoIndex || 0), Math.max(0, catalog.torso.length - 1));
-  if (pantsIndex < 0) pantsIndex = Math.min(Math.max(0, outfit.pantsIndex || 0), Math.max(0, catalog.pants.length - 1));
-
-  state.torsoIndex = torsoIndex;
-  state.pantsIndex = pantsIndex;
-  state.torsoTexture = Math.max(0, Number(outfit.torso.texture) || 0);
-  state.pantsTexture = Math.max(0, Number(outfit.pants.texture) || 0);
-
-  render();
+  applyOutfitSelection(outfit);
   status.textContent = 'Look "' + (outfit.name || "Unbenannt") + '" geladen.';
 }
 
@@ -578,20 +600,7 @@ window.WardrobeBridge = {
   },
   load: function(outfit) {
     if (!outfit || !outfit.torso || !outfit.pants) return false;
-    const targetGender = outfit.gender === "male" ? "male" : "female";
-    switchGender(targetGender, false);
-
-    let torsoIndex = catalog.torso.findIndex(function(x){ return String(x.id) === String(outfit.torso.id); });
-    let pantsIndex = catalog.pants.findIndex(function(x){ return String(x.id) === String(outfit.pants.id); });
-
-    if (torsoIndex < 0) torsoIndex = Math.min(Math.max(0, Number(outfit.torsoIndex) || 0), Math.max(0, catalog.torso.length - 1));
-    if (pantsIndex < 0) pantsIndex = Math.min(Math.max(0, Number(outfit.pantsIndex) || 0), Math.max(0, catalog.pants.length - 1));
-
-    state.torsoIndex = torsoIndex;
-    state.pantsIndex = pantsIndex;
-    state.torsoTexture = Math.max(0, Number(outfit.torso.texture) || 0);
-    state.pantsTexture = Math.max(0, Number(outfit.pants.texture) || 0);
-    render();
+    applyOutfitSelection(outfit);
     status.textContent = 'Look "' + (outfit.name || "Unbenannt") + '" als Vorlage geladen.';
     window.scrollTo({top: document.querySelector(".catalog").offsetTop, behavior:"smooth"});
     return true;
