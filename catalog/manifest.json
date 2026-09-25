@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "source": "Klamotten ST",
+  "categories": [
+    {
+      "key": "torso",
+      "label": "Torso",
+      "female": "female/torso.json",
+      "male": "male/torso.json"
+    },
+    {
+      "key": "vest",
+      "label": "Weste",
+      "female": "female/weste.json",
+      "male": "male/weste.json"
+    },
+    {
+      "key": "pants",
+      "label": "Hose",
+      "female": "female/hose.json",
+      "male": "male/hose.json"
+    },
+    {
+      "key": "shoes",
+      "label": "Schuhe",
+      "female": "female/schuhe.json",
+      "male": "male/schuhe.json"
+    },
+    {
+      "key": "tshirt",
+      "label": "T-Shirt",
+      "female": "female/tshirt.json",
+      "male": "male/tshirt.json"
+    }
+  ]
+}
