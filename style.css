@@ -209,6 +209,11 @@ button,input{font:inherit}
   .viewer{grid-template-columns:1fr}
   .imageBox{height:300px}
   .info{padding:14px}
+  .topSlots .slot{grid-template-columns:48px minmax(0,1fr) 48px;gap:8px;padding:12px}
+  .topSlots .arrow{width:48px;min-height:300px}
+  .topSlots .viewer{grid-template-columns:1fr;grid-template-rows:auto}
+  .topSlots .imageBox{height:300px}
+  .topSlots .info{padding:14px;border-top:1px solid var(--line)}
 }
 @media(max-width:480px){
   .app{padding:10px}
@@ -217,6 +222,8 @@ button,input{font:inherit}
   .arrow.prev{order:2}
   .viewer{order:1}
   .arrow.next{order:3}
+  .topSlots .slot{grid-template-columns:1fr}
+  .topSlots .arrow{width:100%;min-height:44px;height:44px}
 }
 
 .savedPanel{
