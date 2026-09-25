@@ -6,6 +6,7 @@ const WARDROBE_TYPES = Object.freeze([
   {key:"tshirt", label:"T-Shirt"}
 ]);
 const PLACEHOLDER_INDEX = -1;
+const PLACEHOLDER_IMAGE = "assets/ui/placeholder-select.svg";
 
 const CATALOG_FILES = Object.freeze({
   female: Object.freeze({
@@ -105,23 +106,32 @@ function renderType(type) {
   const imageBox = img.parentElement;
 
   if (!item) {
-    img.removeAttribute("src");
-    img.style.display = "none";
-    let empty = imageBox.querySelector(".emptyImage");
-    if (!empty) {
-      empty = document.createElement("div");
-      empty.className = "emptyImage";
-      imageBox.appendChild(empty);
-    }
-
     const hasCatalogData = list.length > 0;
-    empty.textContent = hasCatalogData
-      ? "Nicht ausgewählt"
-      : (activeGender === "male" ? "Noch keine Herren-Daten hinterlegt" : "Keine Daten vorhanden");
+    const empty = imageBox.querySelector(".emptyImage");
+
+    if (hasCatalogData) {
+      if (empty) empty.remove();
+      const typeDef = WARDROBE_TYPES.find(function(entry){ return entry.key === type; });
+      img.style.display = "block";
+      img.src = PLACEHOLDER_IMAGE;
+      img.alt = (typeDef ? typeDef.label : "Kleidungsstück") + " auswählen";
+    } else {
+      img.removeAttribute("src");
+      img.style.display = "none";
+      let noData = empty;
+      if (!noData) {
+        noData = document.createElement("div");
+        noData.className = "emptyImage";
+        imageBox.appendChild(noData);
+      }
+      noData.textContent = activeGender === "male"
+        ? "Noch keine Herren-Daten hinterlegt"
+        : "Keine Daten vorhanden";
+    }
 
     document.getElementById(type + "Id").textContent = "—";
     document.getElementById(type + "Desc").textContent = hasCatalogData
-      ? "Mit den Pfeilen ein Kleidungsstück auswählen."
+      ? "Bitte mit den Pfeilen ein Kleidungsstück auswählen."
       : (activeGender === "male"
         ? "Dieser Bereich ist vorbereitet. Sobald deine Männerdaten kommen, werden sie hier eingefügt."
         : "Keine Einträge vorhanden.");
