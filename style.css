@@ -1207,8 +1207,10 @@ body.auth-locked main.app { display:none; }
 }
 .clothingStrip{
   display:grid;
-  grid-template-columns:repeat(5,minmax(0,1fr));
+  grid-template-columns:repeat(5,minmax(360px,1fr));
   align-items:stretch;
+  overflow-x:auto;
+  overflow-y:hidden;
   border-bottom:1px solid var(--line);
 }
 .clothingStrip .clothingCard{
@@ -1382,17 +1384,7 @@ body.auth-locked main.app { display:none; }
 .cloudToolsDisclosure .cloudTransfer{padding:16px 20px 18px}
 .cloudToolsDisclosure .cloudAdvanced summary{min-height:68px;padding:16px 20px}
 
-@media(max-width:1500px){
-  .clothingStrip{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .clothingStrip .clothingCard:nth-child(4),
-  .clothingStrip .clothingCard:nth-child(5){border-top:1px solid var(--line)!important}
-  .clothingStrip .clothingCard:nth-child(4){border-left:0}
-}
 @media(max-width:980px){
-  .clothingStrip{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .clothingStrip .clothingCard:nth-child(n){border-top:1px solid var(--line)!important}
-  .clothingStrip .clothingCard:nth-child(-n+2){border-top:0!important}
-  .clothingStrip .clothingCard:nth-child(odd){border-left:0}
   .cloudHub{grid-template-columns:1fr}
   .cloudHero,.cloudSave{grid-column:1}
   .cloudSave{border-left:0}
