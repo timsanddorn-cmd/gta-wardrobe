@@ -1373,9 +1373,7 @@ body.auth-locked main.app { display:none; }
   font:22px/1 Georgia,"Times New Roman",serif;
 }
 .cloudToolsDisclosure[open] .cloudToolsSummary::after{content:"−"}
-.cloudToolsDisclosure .cloudToolsHead{
-  padding:14px 20px 12px;
-}
+.cloudToolsDisclosure .cloudToolsHead{display:none}
 .cloudToolsDisclosure .cloudToolsHead h4{font-size:18px}
 .cloudToolsDisclosure .cloudToolsHead p{margin-top:4px}
 .cloudToolsDisclosure .cloudToolsGrid{
