@@ -435,7 +435,9 @@ function saveNamedOutfit() {
   writeSavedOutfits(list);
   input.value = "";
   renderSavedOutfits();
-  status.textContent = 'Look "' + name + '" gespeichert.';
+  resetSelectionState();
+  render();
+  status.textContent = 'Look "' + name + '" gespeichert. Neue Auswahl startet leer.';
 }
 
 function loadNamedOutfit(id) {
@@ -1384,10 +1386,12 @@ const firebaseConfig = {
       if (!sessionIsCurrent(session)) return;
 
       cloudOutfitName.value = "";
+      resetSelectionState();
+      render();
       currentTab = "mine";
       await refreshCloud(false,session.revision);
       if (!sessionIsCurrent(session)) return;
-      bridge.message('Look "' + name + '" wurde in deiner Cloud gespeichert.');
+      bridge.message('Look "' + name + '" wurde gespeichert. Neue Auswahl startet leer.');
     } catch (e) {
       console.error(e);
       if (sessionIsCurrent(session)) bridge.message("Der Look konnte nicht gespeichert werden.");
