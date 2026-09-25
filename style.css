@@ -1197,3 +1197,221 @@ body.auth-locked main.app { display:none; }
   .cloudNavigation .cloudTabs{overflow-x:auto}
   .cloudNavigation .cloudTab{flex:0 0 auto}
 }
+
+
+/* ===== Five-column builder + compact workspace ===== */
+.app{
+  max-width:1900px;
+  padding-left:18px;
+  padding-right:18px;
+}
+.clothingStrip{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  align-items:stretch;
+  border-bottom:1px solid var(--line);
+}
+.clothingStrip .clothingCard{
+  position:relative;
+  display:block;
+  min-width:0;
+  padding:0;
+  border-top:0!important;
+  border-left:1px solid var(--line);
+  min-height:0;
+  background:#0d0e0f;
+}
+.clothingStrip .clothingCard:first-child{border-left:0}
+.clothingStrip .viewer{
+  display:grid;
+  grid-template-columns:1fr;
+  grid-template-rows:360px auto;
+  min-width:0;
+  border:0;
+  background:#111213;
+}
+.clothingStrip .imageBox{
+  height:360px;
+  border-right:0;
+  border-bottom:1px solid var(--line);
+}
+.clothingStrip .info{
+  min-height:176px;
+  justify-content:flex-start;
+  padding:15px 16px 16px;
+  border:0;
+}
+.clothingStrip .kind{margin-bottom:9px}
+.clothingStrip .id{font-size:24px}
+.clothingStrip .desc{
+  margin-top:7px;
+  min-height:38px;
+  font-size:11px;
+  line-height:1.45;
+}
+.clothingStrip .position{margin-top:8px}
+.clothingStrip .textureRow{margin-top:11px}
+.clothingStrip .arrow{
+  position:absolute;
+  z-index:4;
+  top:158px;
+  width:38px;
+  height:44px;
+  min-height:44px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(10,11,12,.82);
+  backdrop-filter:blur(4px);
+  color:#d1ccc3;
+  font-size:28px;
+}
+.clothingStrip .arrow.prev{left:8px;border-radius:0}
+.clothingStrip .arrow.next{right:8px;border-radius:0}
+.clothingStrip .arrow:first-child,
+.clothingStrip .arrow:last-child{border:1px solid rgba(255,255,255,.12)}
+.clothingStrip .arrow:hover{background:rgba(28,29,30,.95)}
+
+/* Compact area below the builder */
+.actions{
+  padding:14px 18px 8px;
+  background:#0b0c0d;
+  border-top:0;
+}
+.quickHelp{
+  margin:0;
+  padding:0 18px 14px;
+  background:#0b0c0d;
+  border-bottom:1px solid var(--line);
+}
+.cloudHub{
+  display:grid;
+  grid-template-columns:minmax(0,1.2fr) minmax(360px,.8fr);
+  margin:0;
+  border:0;
+  border-top:1px solid var(--line);
+  background:#0d0e10;
+}
+.cloudHero{
+  grid-column:1;
+  min-height:112px;
+  padding:16px 20px;
+  border-bottom:1px solid var(--line);
+}
+.cloudHero h3{font-size:23px}
+.cloudHero p{
+  margin-top:6px;
+  max-width:760px;
+  font-size:10px;
+  line-height:1.5;
+}
+.cloudSummary{
+  min-width:180px;
+  font-size:9px;
+  line-height:1.55;
+}
+.cloudSave{
+  grid-column:2;
+  align-content:center;
+  padding:16px 20px;
+  border-left:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.cloudNavigation,
+.cloudContentBar,
+.cloudTabBody,
+.cloudTools{grid-column:1/-1}
+.cloudNavHead{display:none}
+.cloudNavigation{
+  grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);
+  min-height:44px;
+}
+.cloudNavigation .cloudTabs{min-height:44px}
+.cloudNavigation .cloudTab{min-height:44px}
+.cloudContentBar{display:none}
+.cloudTabBody{
+  max-height:520px;
+  overflow:auto;
+  overscroll-behavior:contain;
+  padding:16px 20px 20px;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+}
+.cloudTools{
+  border-top:1px solid var(--line);
+  background:#08090a;
+}
+.cloudToolsDisclosure{display:block}
+.cloudToolsSummary{
+  list-style:none;
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:13px 20px;
+  cursor:pointer;
+  background:#090a0b;
+}
+.cloudToolsSummary::-webkit-details-marker{display:none}
+.cloudToolsSummary > span:first-child{display:grid;gap:2px}
+.cloudToolsSummary .cloudEyebrow{margin:0}
+.cloudToolsSummary strong{
+  color:var(--soft);
+  font-size:11px;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+}
+.cloudToolsSummaryHint{
+  color:#77746f;
+  font-size:9px;
+  line-height:1.4;
+  text-align:right;
+}
+.cloudToolsSummary::after{
+  content:"+";
+  color:var(--accent);
+  font:22px/1 Georgia,"Times New Roman",serif;
+}
+.cloudToolsDisclosure[open] .cloudToolsSummary::after{content:"−"}
+.cloudToolsDisclosure .cloudToolsHead{
+  padding:14px 20px 12px;
+}
+.cloudToolsDisclosure .cloudToolsHead h4{font-size:18px}
+.cloudToolsDisclosure .cloudToolsHead p{margin-top:4px}
+.cloudToolsDisclosure .cloudToolsGrid{
+  grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);
+}
+.cloudToolsDisclosure .cloudTransfer{padding:16px 20px 18px}
+.cloudToolsDisclosure .cloudAdvanced summary{min-height:68px;padding:16px 20px}
+
+@media(max-width:1500px){
+  .clothingStrip{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .clothingStrip .clothingCard:nth-child(4),
+  .clothingStrip .clothingCard:nth-child(5){border-top:1px solid var(--line)!important}
+  .clothingStrip .clothingCard:nth-child(4){border-left:0}
+}
+@media(max-width:980px){
+  .clothingStrip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .clothingStrip .clothingCard:nth-child(n){border-top:1px solid var(--line)!important}
+  .clothingStrip .clothingCard:nth-child(-n+2){border-top:0!important}
+  .clothingStrip .clothingCard:nth-child(odd){border-left:0}
+  .cloudHub{grid-template-columns:1fr}
+  .cloudHero,.cloudSave{grid-column:1}
+  .cloudSave{border-left:0}
+  .cloudNavigation{grid-template-columns:1fr}
+  .cloudNavGroup + .cloudNavGroup{border-left:0;border-top:1px solid var(--line)}
+  .cloudToolsDisclosure .cloudToolsGrid{grid-template-columns:1fr}
+}
+@media(max-width:620px){
+  .clothingStrip{grid-template-columns:1fr}
+  .clothingStrip .clothingCard:nth-child(n){
+    border-left:0;
+    border-top:1px solid var(--line)!important;
+  }
+  .clothingStrip .clothingCard:first-child{border-top:0!important}
+  .clothingStrip .viewer{grid-template-rows:300px auto}
+  .clothingStrip .imageBox{height:300px}
+  .clothingStrip .arrow{top:128px}
+  .cloudHero,.cloudSave{padding-left:16px;padding-right:16px}
+  .cloudToolsSummary{padding-left:16px;padding-right:16px}
+  .cloudToolsSummaryHint{display:none}
+  .cloudTabBody{max-height:none;overflow:visible}
+}
