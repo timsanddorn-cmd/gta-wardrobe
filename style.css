@@ -1819,3 +1819,68 @@ body{font-size:16px}
 @media(max-width:650px){
   .cloudHero h3{font-size:23px}
 }
+
+
+/* ===== Larger cloud summary and tools ===== */
+.cloudSummary{
+  font-size:13px;
+  line-height:1.6;
+}
+.cloudSummary strong{
+  display:inline-block;
+  margin-bottom:2px;
+  font-size:17px;
+  line-height:1.25;
+}
+
+.cloudNavigation .cloudTab{
+  font-size:12px;
+}
+
+.cloudEmpty{
+  font-size:13px;
+  line-height:1.55;
+}
+
+.cloudToolsSummary strong{
+  font-size:12px;
+}
+.cloudToolsSummaryHint{
+  font-size:11px;
+}
+.cloudToolTitle{
+  font-size:13px;
+}
+.cloudTransfer p,
+.cloudAdvancedBody p{
+  font-size:12px;
+  line-height:1.55;
+}
+.cloudMigration{
+  font-size:12px;
+  line-height:1.55;
+}
+.cloudNotice{
+  font-size:11px;
+  line-height:1.5;
+}
+.cloudTransferRow .cloudBtn,
+.cloudAdvancedGrid .cloudBtn{
+  font-size:12px;
+}
+
+@media(max-width:650px){
+  .cloudSummary{
+    font-size:12px;
+    line-height:1.55;
+  }
+  .cloudSummary strong{
+    font-size:16px;
+  }
+  .cloudNavigation .cloudTab{
+    font-size:11px;
+  }
+  .cloudToolsSummary strong{
+    font-size:11px;
+  }
+}
