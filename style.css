@@ -1748,3 +1748,67 @@ body{font-size:16px}
   .cloudHero h3{font-size:18px}
   .cloudNavigation .cloudTab{font-size:9px}
 }
+
+
+/* ===== Readability pass 2 ===== */
+.header h1{font-size:clamp(28px,4.2vw,40px)}
+.header p{font-size:15px}
+.badge{font-size:15px}
+
+.catalogHead h2{font-size:20px}
+.catalogHead p{font-size:15px}
+
+.clothingStrip .kind{font-size:12px}
+.clothingStrip .id{font-size:27px}
+.clothingStrip .desc{font-size:13px;line-height:1.55}
+.clothingStrip .position{font-size:12px}
+.clothingStrip .textureRow label{font-size:12px}
+.clothingStrip .textureRow input{font-size:13px}
+
+.actions button{font-size:11px}
+.status{font-size:15px}
+
+.cloudHero h3{font-size:21px}
+.cloudSummary{font-size:11px}
+.cloudSave input{font-size:13px}
+.cloudBtn{font-size:11px}
+.cloudNavigation .cloudTab{font-size:11px}
+.cloudEmpty{font-size:12px}
+.cloudCardOwner{font-size:10px}
+.cloudCardName{font-size:19px}
+.cloudCardMeta{font-size:12px}
+.cloudStatus{font-size:10px}
+.cloudCardActions .cloudBtn{font-size:10px}
+
+.savedHead h3{font-size:14px}
+.savedHead small,
+.savedMeta,
+.savedEmpty{font-size:12px}
+.savedName{font-size:16px}
+.saveForm input{font-size:13px}
+.saveForm button,
+.savedButtons button,
+.backupRow button,
+.backupRow label{font-size:11px}
+
+.backupTitleRow h3{font-size:14px}
+.backupTitleRow small{font-size:12px}
+.backupState{font-size:11px}
+.backupLabel{font-size:19px}
+.backupBlock p{font-size:13px}
+.backupInfo{font-size:11px}
+
+.cloudToolsSummary strong{font-size:11px}
+.cloudToolsSummaryHint{font-size:10px}
+.cloudToolTitle{font-size:12px}
+.cloudTransfer p,
+.cloudAdvancedBody p{font-size:11px}
+.cloudMigration{font-size:11px}
+.cloudNotice{font-size:10px}
+
+@media(max-width:650px){
+  .header h1{font-size:30px}
+  .catalogHead h2{font-size:19px}
+  .cloudHero h3{font-size:20px}
+  .cloudNavigation .cloudTab{font-size:10px}
+}
