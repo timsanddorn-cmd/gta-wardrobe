@@ -1,18 +1,23 @@
 # GTA Wardrobe
 
-Gemeinsame Wardrobe-App für Tim, Ray, Andy und Kata.
+Statische Wardrobe-Anwendung für GTA RP mit Firebase Authentication, Firestore-Cloud-Looks und lokalem Backup/Restore.
 
-## Aktueller Funktionsumfang
-- Firebase-Login ohne sichtbare E-Mail-Adressen
-- Firestore-Freigabeliste für genau die erlaubten Nutzer
-- Eigene Cloud-Looks speichern, umbenennen, archivieren und löschen
-- Looks der anderen ansehen und als Vorlage laden
-- Outfit-Vorschläge senden, annehmen, ablehnen und zurückziehen
-- Export, Import und geschützte vollständige Sicherung
-- Übernahme älterer lokaler Looks
-- Eigenes Passwort unter „Konto & Sicherheit“ ändern
-- Damen-/Herren-Bereiche vorbereitet
+## Struktur
 
-Die App ist in `index.html` (Markup), `style.css` (Darstellung) und `app.js` (Logik, Katalogdaten und Firebase-Anbindung) aufgeteilt. GitHub Pages und Firebase Hosting verwenden gemeinsam diese Dateien.
+- `index.html` – Seitenstruktur
+- `style.css` – Darstellung
+- `app.js` – Anwendungs-, Login-, Cloud- und Speicherlogik
+- `catalog/manifest.json` – Übersicht der Katalogbereiche
+- `catalog/female/*.json` – Damen-Katalogdaten
+- `catalog/male/*.json` – vorbereitete Herren-Katalogdaten
+- `assets/catalog/` – einzeln ladbare Kleidungsbilder
+- `firestore.rules` – Firestore-Berechtigungen
+- `firebase.json` – Firebase-Hosting-Konfiguration
 
-Firestore-Regeln liegen versioniert in `firestore.rules`.
+## Katalog
+
+Kleidungsbilder sind nicht mehr in `app.js` eingebettet. Jeder Katalogeintrag enthält nur ID, Beschreibung und Bildpfad. Dadurch bleibt die Programmlogik klein und neue Kleidung kann ohne erneutes Aufblähen von `app.js` ergänzt werden.
+
+Aktuell vollständig angebunden: Torso, Weste, Hose, Schuhe und T-Shirt.
+
+Die bestehenden Cloud-, Vorschlags-, Import/Export- und Backup-Funktionen verwenden weiterhin die Kleidungs-IDs und Texturen; die ausgelagerten Bilddateien werden nicht in Looks gespeichert.
