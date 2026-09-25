@@ -1812,3 +1812,10 @@ body{font-size:16px}
   .cloudHero h3{font-size:20px}
   .cloudNavigation .cloudTab{font-size:10px}
 }
+
+
+/* ===== Emphasize cloud workspace title ===== */
+.cloudHero h3{font-size:25px}
+@media(max-width:650px){
+  .cloudHero h3{font-size:23px}
+}
