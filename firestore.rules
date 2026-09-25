@@ -26,31 +26,50 @@ service cloud.firestore {
         && part.texture >= 0;
     }
 
-    function validOutfitFields(outfit) {
-      return outfit.schemaVersion == 1
-        && outfit.name is string
+    function validCommonOutfitFields(outfit) {
+      return outfit.name is string
         && outfit.name.size() > 0
         && outfit.name.size() <= 60
         && outfit.gender in ['female', 'male']
         && outfit.savedAt is string
         && outfit.savedAt.size() > 0
         && outfit.savedAt.size() <= 80
-        && outfit.torsoIndex is int
-        && outfit.torsoIndex >= 0
-        && outfit.pantsIndex is int
-        && outfit.pantsIndex >= 0
-        && validGarment(outfit.torso)
-        && validGarment(outfit.pants)
-        && outfit.archived is bool
+        && outfit.archived is bool;
+    }
+
+    function validGarmentPairs(outfit) {
+      return (('torso' in outfit) == ('torsoIndex' in outfit))
+        && (!('torso' in outfit)
+          || (outfit.torsoIndex is int && outfit.torsoIndex >= 0 && validGarment(outfit.torso)))
         && (('vest' in outfit) == ('vestIndex' in outfit))
         && (!('vest' in outfit)
           || (outfit.vestIndex is int && outfit.vestIndex >= 0 && validGarment(outfit.vest)))
+        && (('pants' in outfit) == ('pantsIndex' in outfit))
+        && (!('pants' in outfit)
+          || (outfit.pantsIndex is int && outfit.pantsIndex >= 0 && validGarment(outfit.pants)))
         && (('shoes' in outfit) == ('shoesIndex' in outfit))
         && (!('shoes' in outfit)
           || (outfit.shoesIndex is int && outfit.shoesIndex >= 0 && validGarment(outfit.shoes)))
         && (('tshirt' in outfit) == ('tshirtIndex' in outfit))
         && (!('tshirt' in outfit)
           || (outfit.tshirtIndex is int && outfit.tshirtIndex >= 0 && validGarment(outfit.tshirt)));
+    }
+
+    function hasAnyGarment(outfit) {
+      return ('torso' in outfit)
+        || ('vest' in outfit)
+        || ('pants' in outfit)
+        || ('shoes' in outfit)
+        || ('tshirt' in outfit);
+    }
+
+    function validOutfitFields(outfit) {
+      return validCommonOutfitFields(outfit)
+        && validGarmentPairs(outfit)
+        && (
+          (outfit.schemaVersion == 1 && ('torso' in outfit) && ('pants' in outfit))
+          || (outfit.schemaVersion == 2 && hasAnyGarment(outfit))
+        );
     }
 
     function validOutfit(outfit) {
@@ -60,10 +79,6 @@ service cloud.firestore {
           'name',
           'gender',
           'savedAt',
-          'torsoIndex',
-          'pantsIndex',
-          'torso',
-          'pants',
           'archived'
         ])
         && outfit.keys().hasOnly([
@@ -72,8 +87,8 @@ service cloud.firestore {
           'gender',
           'savedAt',
           'torsoIndex',
-          'pantsIndex',
           'vestIndex',
+          'pantsIndex',
           'shoesIndex',
           'tshirtIndex',
           'torso',
@@ -93,10 +108,6 @@ service cloud.firestore {
           'name',
           'gender',
           'savedAt',
-          'torsoIndex',
-          'pantsIndex',
-          'torso',
-          'pants',
           'archived',
           'createdAt',
           'updatedAt'
@@ -107,8 +118,8 @@ service cloud.firestore {
           'gender',
           'savedAt',
           'torsoIndex',
-          'pantsIndex',
           'vestIndex',
+          'pantsIndex',
           'shoesIndex',
           'tshirtIndex',
           'torso',
