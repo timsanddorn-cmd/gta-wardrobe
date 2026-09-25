@@ -178,66 +178,8 @@
     <div class="quickHelp">Diese drei Tasten sind nur für eine schnelle Auswahl auf diesem Gerät. Dauerhafte Outfits speicherst du direkt darunter in deinem persönlichen Cloud-Bereich.</div>
 
 
-    <section class="savedPanel">
-      <div class="savedHead">
-        <div>
-          <h3>GESPEICHERTE LOOKS</h3>
-          <small>Dein persönliches IC-Archiv</small>
-        </div>
-        <small id="savedCount">0 gespeichert</small>
-      </div>
-
-      <div class="saveForm">
-        <input id="outfitName" type="text" maxlength="60" placeholder="Look benennen · z. B. Dienst / Event / Privat">
-        <button type="button" id="saveNamedBtn">LOOK SPEICHERN</button>
-      </div>
-
-      <div class="savedList" id="savedList"></div>
-
-      <div class="backupRow">
-        <button type="button" id="exportBtn">ARCHIV EXPORTIEREN</button>
-        <label for="importFile">ARCHIV IMPORTIEREN</label>
-        <input id="importFile" type="file" accept="application/json,.json">
-      </div>
-    </section>
-
-
-    <section class="backupCenter">
-      <div class="backupTitleRow">
-        <div>
-          <h3>DATENSICHERUNG</h3>
-          <small>Kompletter Fortschritt als Datei auf dem PC sichern</small>
-        </div>
-        <span class="backupState" id="backupState">BEREIT</span>
-      </div>
-
-      <div class="backupGrid">
-        <div class="backupBlock">
-          <div class="backupLabel">Vollständige Sicherung</div>
-          <p>Speichert alle Looks, Damen-/Herren-Auswahl, Merkliste und zukünftige Wardrobe-Daten in einer JSON-Datei.</p>
-          <button type="button" class="backupPrimary" id="fullBackupBtn">SICHERUNG ERSTELLEN</button>
-        </div>
-
-        <div class="backupBlock">
-          <div class="backupLabel">Wiederherstellung</div>
-          <p>Lädt eine zuvor erstellte Sicherungsdatei und stellt deinen gespeicherten Fortschritt wieder her.</p>
-          <label class="backupFileBtn" for="restoreBackupFile">SICHERUNG WIEDERHERSTELLEN</label>
-          <input id="restoreBackupFile" type="file" accept="application/json,.json">
-        </div>
-
-        <div class="backupBlock">
-          <div class="backupLabel">Interne Notfallsicherung</div>
-          <p>Bei Änderungen wird zusätzlich automatisch ein lokaler Wiederherstellungspunkt angelegt.</p>
-          <button type="button" id="restoreSnapshotBtn">LETZTEN STAND LADEN</button>
-        </div>
-      </div>
-
-      <div class="backupInfo" id="backupInfo">
-        Empfehlung: Nach größeren Änderungen oder vor einem Update einmal „Sicherung erstellen“ drücken und die Datei an einem sicheren Ort aufbewahren.
-      </div>
-    </section>
-
-
+    
+    <!-- Cloud outfits stay close to the Look Builder for daily use. -->
     <section class="cloudHub" id="cloudHub">
       <div class="cloudHero">
         <div>
@@ -293,7 +235,70 @@
         <div class="cloudEmpty">Nach der Anmeldung werden deine Cloud-Outfits geladen.</div>
       </div>
 
-      <section class="cloudTools">
+      
+    </section>
+
+    <!-- Local archive and device backup remain below the cloud workspace. -->
+    <section class="savedPanel">
+      <div class="savedHead">
+        <div>
+          <h3>GESPEICHERTE LOOKS</h3>
+          <small>Dein persönliches IC-Archiv</small>
+        </div>
+        <small id="savedCount">0 gespeichert</small>
+      </div>
+
+      <div class="saveForm">
+        <input id="outfitName" type="text" maxlength="60" placeholder="Look benennen · z. B. Dienst / Event / Privat">
+        <button type="button" id="saveNamedBtn">LOOK SPEICHERN</button>
+      </div>
+
+      <div class="savedList" id="savedList"></div>
+
+      <div class="backupRow">
+        <button type="button" id="exportBtn">ARCHIV EXPORTIEREN</button>
+        <label for="importFile">ARCHIV IMPORTIEREN</label>
+        <input id="importFile" type="file" accept="application/json,.json">
+      </div>
+    </section>
+
+    <section class="backupCenter">
+      <div class="backupTitleRow">
+        <div>
+          <h3>DATENSICHERUNG</h3>
+          <small>Kompletter Fortschritt als Datei auf dem PC sichern</small>
+        </div>
+        <span class="backupState" id="backupState">BEREIT</span>
+      </div>
+
+      <div class="backupGrid">
+        <div class="backupBlock">
+          <div class="backupLabel">Vollständige Sicherung</div>
+          <p>Speichert alle Looks, Damen-/Herren-Auswahl, Merkliste und zukünftige Wardrobe-Daten in einer JSON-Datei.</p>
+          <button type="button" class="backupPrimary" id="fullBackupBtn">SICHERUNG ERSTELLEN</button>
+        </div>
+
+        <div class="backupBlock">
+          <div class="backupLabel">Wiederherstellung</div>
+          <p>Lädt eine zuvor erstellte Sicherungsdatei und stellt deinen gespeicherten Fortschritt wieder her.</p>
+          <label class="backupFileBtn" for="restoreBackupFile">SICHERUNG WIEDERHERSTELLEN</label>
+          <input id="restoreBackupFile" type="file" accept="application/json,.json">
+        </div>
+
+        <div class="backupBlock">
+          <div class="backupLabel">Interne Notfallsicherung</div>
+          <p>Bei Änderungen wird zusätzlich automatisch ein lokaler Wiederherstellungspunkt angelegt.</p>
+          <button type="button" id="restoreSnapshotBtn">LETZTEN STAND LADEN</button>
+        </div>
+      </div>
+
+      <div class="backupInfo" id="backupInfo">
+        Empfehlung: Nach größeren Änderungen oder vor einem Update einmal „Sicherung erstellen“ drücken und die Datei an einem sicheren Ort aufbewahren.
+      </div>
+    </section>
+
+    <!-- Advanced cloud tools intentionally stay at the bottom. -->
+    <section class="cloudTools">
         <details class="cloudToolsDisclosure">
           <summary class="cloudToolsSummary">
             <span><span class="cloudEyebrow">Optional</span><strong>Werkzeuge &amp; Sicherung</strong></span>
@@ -338,7 +343,6 @@
         </div>
         </details>
       </section>
-    </section>
 
     <div class="cloudModalWrap" id="suggestModal" aria-hidden="true">
       <section class="cloudModal" role="dialog" aria-modal="true" aria-labelledby="suggestModalTitle">
