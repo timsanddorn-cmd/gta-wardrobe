@@ -149,6 +149,8 @@ function renderType(type) {
 
   img.style.display = "block";
   img.src = item.image;
+  const selectedTypeDef = WARDROBE_TYPES.find(function(entry){ return entry.key === type; });
+  img.alt = selectedTypeDef ? selectedTypeDef.label : "Kleidungsstück";
   document.getElementById(type + "Id").textContent = "ID " + item.id;
   document.getElementById(type + "Desc").textContent = item.description;
   document.getElementById(type + "Pos").textContent = (idx + 1) + " von " + list.length;
