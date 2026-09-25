@@ -1667,3 +1667,84 @@ body.auth-locked main.app { display:none; }
   .cloudToolsSummary{padding:8px 12px}
   .cloudToolsSummaryHint{display:none}
 }
+
+
+/* ===== Cloud-first workspace + improved readability ===== */
+body{font-size:16px}
+.header p{font-size:14px}
+.catalogHead p{font-size:14px;line-height:1.5}
+.badge{font-size:14px}
+
+.clothingStrip .kind{font-size:11px}
+.clothingStrip .desc{font-size:12px;line-height:1.5}
+.clothingStrip .position{font-size:11px}
+.clothingStrip .textureRow label{font-size:11px}
+.clothingStrip .textureRow input{font-size:12px}
+
+.actions button{
+  font-size:10px;
+  letter-spacing:.09em;
+}
+.status{font-size:14px}
+
+.cloudHub{
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.cloudHero h3{font-size:19px}
+.cloudSummary{
+  font-size:10px;
+  line-height:1.45;
+}
+.cloudSave input{font-size:12px}
+.cloudBtn{font-size:10px}
+.cloudNavigation .cloudTab{
+  font-size:10px;
+  letter-spacing:.08em;
+}
+.cloudEmpty{font-size:11px}
+.cloudCardOwner{font-size:9px}
+.cloudCardName{font-size:18px}
+.cloudCardMeta{
+  font-size:11px;
+  line-height:1.5;
+}
+.cloudStatus{font-size:9px}
+.cloudCardActions .cloudBtn{font-size:9px}
+
+.savedHead h3{font-size:13px}
+.savedHead small,
+.savedMeta,
+.savedEmpty{font-size:11px}
+.savedName{font-size:15px}
+.saveForm input{font-size:12px}
+.saveForm button,
+.savedButtons button,
+.backupRow button,
+.backupRow label{font-size:10px}
+
+.backupTitleRow h3{font-size:13px}
+.backupTitleRow small{font-size:11px}
+.backupState{font-size:10px}
+.backupLabel{font-size:18px}
+.backupBlock p{font-size:12px}
+.backupInfo{font-size:10px}
+
+.cloudTools{
+  margin:0;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.cloudToolsSummary strong{font-size:10px}
+.cloudToolsSummaryHint{font-size:9px}
+.cloudToolTitle{font-size:11px}
+.cloudTransfer p,
+.cloudAdvancedBody p{font-size:10px}
+.cloudMigration{font-size:10px}
+.cloudNotice{font-size:9px}
+
+@media(max-width:650px){
+  body{font-size:15px}
+  .cloudHero h3{font-size:18px}
+  .cloudNavigation .cloudTab{font-size:9px}
+}
