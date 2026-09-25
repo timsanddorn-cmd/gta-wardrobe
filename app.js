@@ -1032,6 +1032,11 @@ const firebaseConfig = {
     return JSON.stringify(parts);
   }
 
+  function canonicalUserName(value) {
+    const name = String(value || "Benutzer").trim() || "Benutzer";
+    return name.toLowerCase() === "kata" ? "Kata" : name;
+  }
+
   function ownerName(uid) {
     const user = allowedUsers.find(function(x){ return x.uid === uid; });
     return user ? user.name : "Benutzer";
@@ -1094,7 +1099,7 @@ const firebaseConfig = {
     const data = snap.data() || {};
     return {
       uid: user.uid,
-      name: typeof data.name === "string" ? data.name : "Benutzer",
+      name: canonicalUserName(typeof data.name === "string" ? data.name : "Benutzer"),
       role: typeof data.role === "string" ? data.role : "user"
     };
   }
@@ -1103,7 +1108,7 @@ const firebaseConfig = {
     const snap = await getDocs(collection(db, "allowedUsers"));
     return snap.docs.map(function(d) {
       const data = d.data() || {};
-      return {uid:d.id,name:String(data.name || "Benutzer"),role:String(data.role || "user")};
+      return {uid:d.id,name:canonicalUserName(data.name),role:String(data.role || "user")};
     }).sort(function(a,b){ return a.name.localeCompare(b.name,"de"); });
   }
 
@@ -1810,7 +1815,7 @@ const firebaseConfig = {
       const backupOwnerUid = typeof data.ownerUid === "string" ? data.ownerUid : "";
       const backupOwnerName = typeof data.ownerName === "string" ? data.ownerName.trim() : "";
       if (backupOwnerUid && backupOwnerUid !== session.uid) throw new Error("Falsches Konto");
-      if (!backupOwnerUid && backupOwnerName && backupOwnerName !== session.name) throw new Error("Falsches Konto");
+      if (!backupOwnerUid && backupOwnerName && canonicalUserName(backupOwnerName) !== canonicalUserName(session.name)) throw new Error("Falsches Konto");
       if (!backupOwnerUid && !backupOwnerName) throw new Error("Kontozuordnung fehlt");
 
       if (data.cloudOutfits.some(function(x){ return !validIncomingOutfit(x); })) throw new Error("Ungültige Looks");
