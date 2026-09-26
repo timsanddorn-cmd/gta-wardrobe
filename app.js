@@ -1234,6 +1234,9 @@ const firebaseConfig = {
     if (direction === "sent" && item.status === "pending") {
       actions += '<button class="cloudBtn danger" data-suggestion-action="withdraw" data-id="' + esc(item._id) + '" data-direction="' + direction + '">ZURÜCKZIEHEN</button>';
     }
+    if (direction === "sent" && item.status === "withdrawn") {
+      actions += '<button class="cloudBtn danger" data-suggestion-action="delete" data-id="' + esc(item._id) + '" data-direction="' + direction + '">LÖSCHEN</button>';
+    }
     return '<article class="cloudCard">' +
       '<div class="cloudCardTop"><div><div class="cloudCardOwner">' + (direction === "incoming" ? "Von " : "An ") + esc(other) + '</div>' +
       '<div class="cloudCardName">' + esc(outfit.name || "Outfit-Vorschlag") + '</div>' +
@@ -1621,6 +1624,21 @@ const firebaseConfig = {
       if (!sessionIsCurrent(session)) return;
       await refreshCloud(false,session.revision);
       if (sessionIsCurrent(session)) bridge.message("Vorschlag zurückgezogen.");
+      return;
+    }
+    if (action === "delete" && direction === "sent" && item.status === "withdrawn") {
+      if (!confirm("Diesen zurückgezogenen Vorschlag endgültig löschen?")) return;
+      const writeToken = beginOutfitWrite("delete-suggestion:" + id);
+      if (!writeToken) return;
+      try {
+        if (!sessionIsCurrent(session)) return;
+        await deleteDoc(ref);
+        if (!sessionIsCurrent(session)) return;
+        await refreshCloud(false,session.revision);
+        if (sessionIsCurrent(session)) bridge.message("Zurückgezogener Vorschlag gelöscht.");
+      } finally {
+        endOutfitWrite(writeToken);
+      }
     }
   }
 
