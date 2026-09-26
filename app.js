@@ -1228,11 +1228,11 @@ const firebaseConfig = {
     const outfit = item.outfit || {};
     let actions = '<button class="cloudBtn" data-suggestion-action="load" data-id="' + esc(item._id) + '" data-direction="' + direction + '">LOOK LADEN</button>';
     if (direction === "incoming" && item.status === "pending") {
-      actions += '<button class="cloudBtn primary" data-suggestion-action="accept" data-id="' + esc(item._id) + '">ÜBERNEHMEN</button>';
-      actions += '<button class="cloudBtn" data-suggestion-action="decline" data-id="' + esc(item._id) + '">ABLEHNEN</button>';
+      actions += '<button class="cloudBtn primary" data-suggestion-action="accept" data-id="' + esc(item._id) + '" data-direction="' + direction + '">ÜBERNEHMEN</button>';
+      actions += '<button class="cloudBtn" data-suggestion-action="decline" data-id="' + esc(item._id) + '" data-direction="' + direction + '">ABLEHNEN</button>';
     }
     if (direction === "sent" && item.status === "pending") {
-      actions += '<button class="cloudBtn danger" data-suggestion-action="withdraw" data-id="' + esc(item._id) + '">ZURÜCKZIEHEN</button>';
+      actions += '<button class="cloudBtn danger" data-suggestion-action="withdraw" data-id="' + esc(item._id) + '" data-direction="' + direction + '">ZURÜCKZIEHEN</button>';
     }
     return '<article class="cloudCard">' +
       '<div class="cloudCardTop"><div><div class="cloudCardOwner">' + (direction === "incoming" ? "Von " : "An ") + esc(other) + '</div>' +
@@ -1990,10 +1990,12 @@ const firebaseConfig = {
       if (!suggestionSession) return;
 
       try {
+        const suggestionDirection = suggestionBtn.dataset.direction ||
+          (currentTab === "incoming" ? "incoming" : currentTab === "sent" ? "sent" : "");
         await handleSuggestionAction(
           suggestionBtn.dataset.suggestionAction,
           suggestionBtn.dataset.id,
-          suggestionBtn.dataset.direction
+          suggestionDirection
         );
       } catch (err) {
         console.error(err);
