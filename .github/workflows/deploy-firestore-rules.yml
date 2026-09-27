@@ -1,0 +1,63 @@
+name: Deploy Firestore Rules
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - firestore.rules
+      - firebase.json
+      - .firebaserc
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-firestore-rules
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Validate and deploy rules
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java for Firestore emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check Firebase credentials secret
+        shell: bash
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_GTA_WARDROBE }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "::error::GitHub secret FIREBASE_SERVICE_ACCOUNT_GTA_WARDROBE is missing."
+            echo "Add the Firebase service-account JSON as this repository secret, then run this workflow again."
+            exit 1
+          fi
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_GTA_WARDROBE }}
+
+      - name: Install Firebase CLI
+        run: npm install --global firebase-tools
+
+      - name: Validate Firestore rules
+        run: firebase emulators:exec --only firestore --project demo-gta-wardrobe "echo Firestore rules validated"
+
+      - name: Deploy Firestore rules
+        run: firebase deploy --only firestore:rules --project gta-wardrobe --non-interactive
